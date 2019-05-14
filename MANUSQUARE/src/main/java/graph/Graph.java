@@ -66,6 +66,45 @@ public class Graph {
 	}
 	
 	/**
+	 * Finds the lowest common subsumer of the source- and target node
+	 * @param sourceNode
+	 * @param targetNode
+	 * @param label
+	 * @return
+	   May 14, 2019
+	 */
+	public static Node findLCS (Node sourceNode, Node targetNode, Label label) {
+
+		ArrayList<Node> parentsToSource = Graph.getAllParentNodes(sourceNode, label);
+		ArrayList<Node> parentsToTarget = Graph.getAllParentNodes(targetNode, label);
+		ArrayList<Node> commonParentsList = new ArrayList<Node>();
+
+		//TODO: If sourceNode is a parent to target or vice versa I suppose this should be considered as LCS?
+		//Or, if they are the same node
+		for (Node s : parentsToSource) {
+			for (Node t : parentsToTarget) {
+				if (s.equals(t)) {
+					commonParentsList.add(s);
+				}
+			}
+		}
+
+		//find the common parent with the highest depth (i.e. closest to source and target nodes)
+		int maxDepth = 0;
+		int depth = 0;
+		Node LCS = null;
+		for (Node o : commonParentsList) {
+			depth = Graph.findDistanceToRoot(o);
+			if (depth >= maxDepth) {
+				LCS = (Node)o;
+				maxDepth = depth;
+			}
+		}
+
+		return LCS;
+	}
+	
+	/**
 	 * This method creates a Neo4J graph from an input ontology - without a defined label and using a local Neo4J database
 	 * @param sourceOntology
 	 * @throws OWLOntologyCreationException
