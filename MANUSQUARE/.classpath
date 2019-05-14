@@ -32,10 +32,10 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/audunvennesland/eclipse-workspace/MANUSQUARE/lib/owlapi-bin.jar"/>
-	<classpathentry kind="lib" path="/Users/audunvennesland/eclipse-workspace/MANUSQUARE/lib/jwnl.jar"/>
-	<classpathentry kind="lib" path="/Users/audunvennesland/eclipse-workspace/MANUSQUARE/lib/rita.jar"/>
-	<classpathentry kind="lib" path="/Users/audunvennesland/eclipse-workspace/MANUSQUARE/lib/rita.support.jar"/>
-	<classpathentry kind="lib" path="/Users/audunvennesland/eclipse-workspace/MANUSQUARE/lib/ws4j-1.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/audunvennesland/git/manusquare/MANUSQUARE/lib/owlapi-bin.jar"/>
+	<classpathentry kind="lib" path="/Users/audunvennesland/git/manusquare/MANUSQUARE/lib/jwnl.jar"/>
+	<classpathentry kind="lib" path="/Users/audunvennesland/git/manusquare/MANUSQUARE/lib/rita.jar"/>
+	<classpathentry kind="lib" path="/Users/audunvennesland/git/manusquare/MANUSQUARE/lib/rita.support.jar"/>
+	<classpathentry kind="lib" path="/Users/audunvennesland/git/manusquare/MANUSQUARE/lib/ws4j-1.0.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

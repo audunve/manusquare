@@ -1,6 +1,7 @@
 package graph;
 
 import java.io.File;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,7 +35,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import owl.OntologyOperations;
+import owlprocessing.OntologyOperations;
 import utilities.StringUtilities;
 
 public class Graph {
@@ -63,9 +64,39 @@ public class Graph {
 		this.db = db;
 
 	}
+	
+	/**
+	 * This method creates a Neo4J graph from an input ontology - without a defined label and using a local Neo4J database
+	 * @param sourceOntology
+	 * @throws OWLOntologyCreationException
+	   May 14, 2019
+	 */
+	public static void createOntologyGraph (File sourceOntology) throws OWLOntologyCreationException {
+
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology sourceOnto = manager.loadOntologyFromOntologyDocument(sourceOntology);
+
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		String dbName = String.valueOf(timestamp.getTime());
+		File dbFile = new File("/Users/audunvennesland/Documents/phd/development/Neo4J_new/" + dbName);	
+		System.err.println("Creating a new NEO4J database...");
+		GraphDatabaseService db = new GraphDatabaseFactory().newEmbeddedDatabase(dbFile);
+		//System.out.println("Database created");
+
+		String ontologyParameter1 = StringUtilities.stripPath(sourceOntology.toString());
+
+		//create new graphs
+		Label labelO1 = DynamicLabel.label( ontologyParameter1 );
+
+		System.err.println("Creating ontology graph of ontology " + ontologyParameter1);
+		Graph creator = new Graph(db);
+
+		creator.createOntologyGraph(sourceOnto, labelO1);
+
+	}
 
 	/**
-	 * This method creates a Neo4J graph from an input ontology
+	 * This method creates a Neo4J graph from an input ontology - with a defined label
 	 * 
 	 * @param OWLOntology
 	 *            onto
@@ -145,7 +176,6 @@ public class Graph {
 			value = n.getProperty(key).toString();
 			tx.success();
 		}
-		// registerShutdownHook(db);
 		return value;
 	}
 
@@ -294,7 +324,7 @@ public class Graph {
 		return td.traverse(classNode);
 	}
 
-	// TO-DO: Why is this an ArrayList and not a Node being returned?
+	// TODO: Why is this an ArrayList and not a Node being returned?
 	/**
 	 * Returns an ArrayList holding the parent node of the node provided as
 	 * parameter
@@ -327,39 +357,6 @@ public class Graph {
 		return parentNodeList;
 	}
 
-//	/**
-//	 * Returns an ArrayList holding all parent nodes to the Node provided as
-//	 * parameter
-//	 * 
-//	 * @param classNode
-//	 *            the Node for which all parent nodes are to be retrieved
-//	 * @param label
-//	 *            representing the graph/ontology to process
-//	 * @return all parent nodes to node provided as parameter
-//	 */
-//	public static ArrayList<Object> getAllParentNodes(Node classNode, Label label) {
-//
-//		ArrayList<Object> parentNodeList = new ArrayList<Object>();
-//		Traverser parentNodeTraverser = null;
-//
-//		try (Transaction tx = db.beginTx()) {
-//
-//			parentNodeTraverser = getParentNodeTraverser(classNode);
-//
-//			for (Path parentNodePath : parentNodeTraverser) {
-//				if (parentNodePath.endNode().hasLabel(label)) {
-//					parentNodeList.add(parentNodePath.endNode().getProperty("classname"));
-//
-//				}
-//
-//			}
-//
-//			tx.success();
-//
-//		}
-//
-//		return parentNodeList;
-//	}
 	
 	/**
 	 * Returns an ArrayList holding all parent nodes to the Node provided as

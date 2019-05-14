@@ -1,4 +1,4 @@
-package testdata;
+package importtestdata;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,7 +22,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
-import owl.OntologyOperations;
+import owlprocessing.OntologyOperations;
 
 /**
  * Reads instance data from CSV and adds these data as individuals in the Manusquare Industrial OWL ontology.

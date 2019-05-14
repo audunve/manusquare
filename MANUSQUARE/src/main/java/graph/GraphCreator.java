@@ -46,7 +46,7 @@ public class GraphCreator {
 	 */
 	public static void createOntologyGraph(OWLOntology onto, Label label) throws OWLOntologyCreationException {
 
-		Map<String, String> superClassMap = owl.OntologyOperations.getClassesAndSuperClasses(onto);
+		Map<String, String> superClassMap = owlprocessing.OntologyOperations.getClassesAndSuperClasses(onto);
 		Set<String> classes = superClassMap.keySet();
 		Iterator<String> itr = classes.iterator();
 
