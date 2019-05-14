@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>no.sintef.digital.sess.manusquare</groupId>
+	<artifactId>MANUSQUARE</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	
+	<dependencies>
+		<!-- <dependency> <groupId>net.sourceforge.owlapi</groupId> <artifactId>owlapi-api</artifactId> 
+			<version>5.1.4</version> </dependency> -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>apache-jena-libs</artifactId>
+			<type>pom</type>
+			<version>3.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.ontotext.graphdb</groupId>
+			<artifactId>graphdb-free-runtime</artifactId>
+			<version>8.5.0</version>
+		</dependency>
+				<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>3.1.0-M09</version>
+		</dependency>
+		<!-- <dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.26</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.5</version>
+		</dependency> -->
+	</dependencies>
+
+</project>
