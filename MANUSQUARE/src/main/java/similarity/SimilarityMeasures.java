@@ -1,5 +1,11 @@
 package similarity;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -47,7 +53,7 @@ public class SimilarityMeasures {
 		//material facet similarity
 		Node consumerQueryMaterialNode = Graph.getNode(query.getRequiredMaterial(), label);
 		Node supplierResourceMaterialNode = Graph.getNode(resource.getUsedMaterial(), label);		
-		
+				
 		double materialSim = 0;
 		if (similarityMethod.equals("WuPalmer")) {
 			materialSim = computeWuPalmer(consumerQueryMaterialNode, supplierResourceMaterialNode, label);
@@ -60,7 +66,7 @@ public class SimilarityMeasures {
 		//matchine facet similarity
 		Node consumerQueryMachineNode = Graph.getNode(query.getRequiredMachine(), label);
 		Node supplierResourceMachineNode = Graph.getNode(resource.getUsedMachine(), label);
-		
+				
 		double machineSim = 0;
 		if (similarityMethod.equals("WuPalmer")) {
 			machineSim = computeWuPalmer(consumerQueryMachineNode, supplierResourceMachineNode, label);
@@ -73,14 +79,20 @@ public class SimilarityMeasures {
 		//certificate facet similarity
 		Node consumerQueryCertificateNode = Graph.getNode(query.getRequiredCertificates(), label);
 		Node supplierResourceCertificateNode = Graph.getNode(resource.getPosessedCertificates(), label);
-		
+				
 		double certificateSim = 0;
+		
+		if (consumerQueryCertificateNode != null && supplierResourceCertificateNode != null) {
+		
 		if (similarityMethod.equals("WuPalmer")) {
 			certificateSim = computeWuPalmer(consumerQueryCertificateNode, supplierResourceCertificateNode, label);
 		} else if (similarityMethod.equals("Resnik")) {
 			certificateSim = computeResnik(consumerQueryCertificateNode, supplierResourceCertificateNode, label, onto);
 		} else if (similarityMethod.equals("Lin")) {
 			certificateSim = computeLin(consumerQueryCertificateNode, supplierResourceCertificateNode, label, onto);
+		}
+		} else {
+			certificateSim = 0;
 		}
 		
 		double sim = (capacitySim + processSim + materialSim + machineSim + certificateSim) / 5;

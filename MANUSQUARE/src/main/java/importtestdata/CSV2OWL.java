@@ -29,7 +29,7 @@ import owlprocessing.OntologyOperations;
  * @author audunvennesland
  *
  */
-public class TestData {
+public class CSV2OWL {
 	
 	String processChain;
 	String supplierName;
@@ -51,7 +51,7 @@ public class TestData {
 	String comments;
 
 
-	public TestData(String processChain, String supplierName, String supplierNationality, String supplierCity, int productionLeadTime,
+	public CSV2OWL(String processChain, String supplierName, String supplierNationality, String supplierCity, int productionLeadTime,
 			int rfqResponseTime, String sector, String componentDesign, String certification, double sizeX,
 			double sizeY, double sizeZ, int quantity, String materials, String process, String availableFrom,
 			String availableTo, String comments) {
@@ -79,7 +79,7 @@ public class TestData {
 
 	public static void main(String[] args) throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
 
-		TestData data;
+		CSV2OWL data;
 
 		BufferedReader br = new BufferedReader(new FileReader("./files/Manusquare - testdata - short-V3.csv"));
 
@@ -87,12 +87,12 @@ public class TestData {
 
 		String[] params = null;
 
-		Set<TestData> dataset = new HashSet<TestData>();
+		Set<CSV2OWL> dataset = new HashSet<CSV2OWL>();
 
 		while (line != null) {
 			params = line.split(";");
 
-			data = new TestData();
+			data = new CSV2OWL();
 			data.setProcessChain(params[0]);
 			data.setSupplierName(params[1]);
 			data.setSupplierNationality(params[2]);
@@ -166,7 +166,7 @@ public class TestData {
 		int iterator = 0;
 		
 		//adding process chain
-		for (TestData td : dataset) {
+		for (CSV2OWL td : dataset) {
 			iterator+=1;
 			
 			//adding process chain
@@ -276,7 +276,7 @@ public class TestData {
 
 	
 
-	public TestData() {
+	public CSV2OWL() {
 		// TODO Auto-generated constructor stub
 	}
 	

@@ -408,7 +408,7 @@ public class Graph {
 	 * @return all parent nodes to node provided as parameter
 	 */
 	public static ArrayList<Node> getAllParentNodes(Node classNode, Label label) {
-
+		
 		ArrayList<Node> parentNodeList = new ArrayList<Node>();
 		Traverser parentNodeTraverser = null;
 
