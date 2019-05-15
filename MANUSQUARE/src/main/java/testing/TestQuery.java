@@ -14,7 +14,6 @@ import java.util.TreeMap;
 
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Label;
-import org.semanticweb.owl.align.Cell;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -23,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import graph.Graph;
 import importtestdata.CSV2Set;
 import similarity.SimilarityMeasures;
+import utilities.MathUtils;
 import utilities.StringUtilities;
 
 public class TestQuery {
@@ -70,11 +70,12 @@ public class TestQuery {
 		//Map<Cell, Double> sortedAlignmentMap = sortByValues(alignmentMap);
 		Map<SupplierResource, Double> sortedSuppliers = sortByValues(ranking);
 		
-		System.out.println("Ranked list of supplier given the consumer query: ");
+		System.out.println("Ranked list of supplier given the consumer query (Process: " + query.getRequiredProcess() + ", Material: " + query.getRequiredMaterial() + ", Machine: " + query.getRequiredMachine() + ")");
 		System.out.println("\n");
 		
 		for (Entry<SupplierResource, Double> e : sortedSuppliers.entrySet()) {
-			System.out.println("Supplier-Id:" + e.getKey().getId() + " (" + e.getKey().getSupplierName() + ") :" + e.getValue());
+			System.out.println("Supplier-Id:" + e.getKey().getId() + " (Supplier: " + e.getKey().getSupplierName() + ", Process: " 
+		+ e.getKey().getUsedProcess() + ", Material: " + e.getKey().getUsedMaterial() + ", Machine: " + e.getKey().getUsedMachine() + ") : " + MathUtils.round(e.getValue(),2));
 		}
 		
 	}
