@@ -1,11 +1,5 @@
 package similarity;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -19,12 +13,12 @@ public class SimilarityMeasures {
 
 	/**
 	 * Computes a similarity score along the facets Process, Material, Machine and Certificate, and using either Wu-Palmer, Resnik or Lin.
-	 * @param query
-	 * @param resource
-	 * @param label
-	 * @param onto
+	 * @param query represents a ConsumerQuery.
+	 * @param resource represents a SupplierResource.
+	 * @param label a Neo4J Label instance that distinguishes this particular ontology in the graph database. 
+	 * @param onto the ontology from which a graph is created.
 	 * @param similarityMethod
-	 * @return
+	 * @return a similarity score based on a selection of facets.
 	   May 14, 2019
 	 */
 	public static double computeSemanticSimilarity (ConsumerQuery query, SupplierResource resource, Label label, OWLOntology onto, String similarityMethod) {
@@ -41,6 +35,7 @@ public class SimilarityMeasures {
 		Node consumerQueryProcessNode = Graph.getNode(query.getRequiredProcess(), label);
 		Node supplierResourceProcessNode = Graph.getNode(resource.getUsedProcess(), label);
 		
+		//TODO: Find another way to use different similarity methods, e.g. using Properties.
 		double processSim = 0;
 		if (similarityMethod.equals("WuPalmer")) {
 			processSim = computeWuPalmer(consumerQueryProcessNode, supplierResourceProcessNode, label);

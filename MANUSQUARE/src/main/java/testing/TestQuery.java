@@ -2,11 +2,8 @@ package testing;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -51,23 +48,20 @@ public class TestQuery {
 		query.setRequiredCertificates("ISO9001");
 		query.setQuantity(80);
 
-		//dummy supplier resources from testdata from Hans de Man		
+		//retrieve dummy supplier resources from testdata from Hans de Man		
 		Set<SupplierResource> resources = CSV2Set.createSupplierResourceRecords(csv);
 
-		double semanticSim = 0;
-
+		//holds a mapping between SupplierResource objects and the similarity score
 		Map<SupplierResource, Double> ranking = new HashMap<SupplierResource, Double>();
 
+		double semanticSim = 0;
 		for (SupplierResource resource : resources) {
 
-			semanticSim = SimilarityMeasures.computeSemanticSimilarity(query, resource, label, sourceOnto, similarityMethod);
-			//System.out.println("\nThe similarity between the consumer query and the supplier resource using Wu-Palmer is " + semanticSim);	
-			
+			semanticSim = SimilarityMeasures.computeSemanticSimilarity(query, resource, label, sourceOnto, similarityMethod);			
 			ranking.put(resource, semanticSim);
 		}
 		
-		//sort
-		//Map<Cell, Double> sortedAlignmentMap = sortByValues(alignmentMap);
+		//sort by similarity scores
 		Map<SupplierResource, Double> sortedSuppliers = sortByValues(ranking);
 		
 		System.out.println("Ranked list of supplier given the consumer query (Process: " + query.getRequiredProcess() + ", Material: " + query.getRequiredMaterial() + ", Machine: " + query.getRequiredMachine() + ")");
@@ -81,7 +75,13 @@ public class TestQuery {
 	}
 	
 
-	public static <K, V extends Comparable<V>> Map<K, V> sortByValues(final Map<K, V> map) {
+	/** 
+	 * Sorts a map based on similarity scores (values in the map)
+	 * @param map
+	 * @return
+	   May 16, 2019
+	 */
+	private static <K, V extends Comparable<V>> Map<K, V> sortByValues(final Map<K, V> map) {
 	    Comparator<K> valueComparator =  new Comparator<K>() {
 	        public int compare(K k1, K k2) {
 	            int compare = map.get(k2).compareTo(map.get(k1));

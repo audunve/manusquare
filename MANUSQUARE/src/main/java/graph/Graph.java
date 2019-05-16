@@ -42,26 +42,11 @@ public class Graph {
 
 	static GraphDatabaseService db;
 
-	final static double THRESHOLD = 0.6;
-
-	Label label;
-
-	/**
-	 * This label represents the graph/ontology to process
-	 */
-	static Label labelOnto1;
-	/**
-	 * This label represents the graph/ontology to process
-	 */
-	static Label labelOnto2;
-
-//	ISub iSubMatcher = new ISub();
-
 	final static String key = "classname";
 
 	public Graph(GraphDatabaseService db) {
 
-		this.db = db;
+		Graph.db = db;
 
 	}
 	
@@ -120,14 +105,15 @@ public class Graph {
 		File dbFile = new File("/Users/audunvennesland/Documents/phd/development/Neo4J_new/" + dbName);	
 		System.err.println("Creating a new NEO4J database...");
 		GraphDatabaseService db = new GraphDatabaseFactory().newEmbeddedDatabase(dbFile);
-		//System.out.println("Database created");
 
-		String ontologyParameter1 = StringUtilities.stripPath(sourceOntology.toString());
+		String ontologyParameter = StringUtilities.stripPath(sourceOntology.toString());
 
 		//create new graphs
-		Label labelO1 = DynamicLabel.label( ontologyParameter1 );
+		Label labelO1 = DynamicLabel.label( ontologyParameter );
 
-		System.err.println("Creating ontology graph of ontology " + ontologyParameter1);
+		System.err.println("Creating ontology graph of ontology " + ontologyParameter);
+		
+		//TODO: the below code is strange, no need for two createOntologyGraph methods in Graph - fix it! 
 		Graph creator = new Graph(db);
 
 		creator.createOntologyGraph(sourceOnto, labelO1);
@@ -154,13 +140,13 @@ public class Graph {
 		try (Transaction tx = db.beginTx()) {
 			// creating a node for owl:Thing
 			Node thingNode = db.createNode(label);
-			thingNode.setProperty("classname", "owl:Thing");
+			thingNode.setProperty(key, "owl:Thing");
 
 			// create nodes from the ontology, that is, create nodes and give them
 			// properties (classname) according to their ontology names
 			while (itr.hasNext()) {
 				Node classNode = db.createNode(label);
-				classNode.setProperty("classname", itr.next().toString());
+				classNode.setProperty(key, itr.next().toString());
 			}
 
 			// create isA relationships between classes and their superclasses
@@ -170,8 +156,8 @@ public class Graph {
 			// iterate through the nodes of the graph database
 			while (iter.hasNext()) {
 				Node n = iter.next();
-				if (n.hasProperty("classname")) {
-					String thisClassName = n.getProperty("classname").toString();
+				if (n.hasProperty(key)) {
+					String thisClassName = n.getProperty(key).toString();
 					String superClass = null;
 					// check if thisClassName equals any of the keys in superClassMap
 					for (Map.Entry<String, String> entry : superClassMap.entrySet()) {
@@ -181,7 +167,7 @@ public class Graph {
 							superClass = superClassMap.get(entry.getKey());
 							// find the "superclass-node" that matches the map value belonging to this key
 							// class
-							Node superClassNode = db.findNode(label, "classname",
+							Node superClassNode = db.findNode(label, key,
 									(Object) superClassMap.get(thisClassName));
 							// create an isA relationship from this graph node to its superclass
 							// if a class does not have any defined super-classes, create an isA
@@ -299,7 +285,7 @@ public class Graph {
 
 			for (Path childNodePath : childNodesTraverser) {
 				if (childNodePath.length() == 1 && childNodePath.endNode().hasLabel(label)) {
-					childNodeList.add(childNodePath.endNode().getProperty("classname"));
+					childNodeList.add(childNodePath.endNode().getProperty(key));
 				}
 			}
 
@@ -328,7 +314,7 @@ public class Graph {
 
 			for (Path childNodePath : childNodesTraverser) {
 				if (childNodePath.endNode().hasLabel(label)) {
-					childNodeList.add(childNodePath.endNode().getProperty("classname"));
+					childNodeList.add(childNodePath.endNode().getProperty(key));
 				}
 			}
 
@@ -385,7 +371,7 @@ public class Graph {
 
 			for (Path parentNodePath : parentNodeTraverser) {
 				if (parentNodePath.length() == 1 && parentNodePath.endNode().hasLabel(label)) {
-					parentNodeList.add(parentNodePath.endNode().getProperty("classname"));
+					parentNodeList.add(parentNodePath.endNode().getProperty(key));
 				}
 			}
 
@@ -473,7 +459,7 @@ public class Graph {
 			parentNodeTraverser = getParentNodeTraverser(classNode);
 			
 			for (Path parentNodePath : parentNodeTraverser) {
-				parentNodeMap.put(parentNodePath.length(), parentNodePath.endNode().getProperty("classname"));
+				parentNodeMap.put(parentNodePath.length(), parentNodePath.endNode().getProperty(key));
 
 			}
 
