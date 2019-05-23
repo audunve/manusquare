@@ -1,15 +1,6 @@
 package utilities;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import net.didion.jwnl.JWNLException;
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -18,237 +9,176 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
-//import edu.stanford.nlp.simple.Sentence;
-import net.didion.jwnl.JWNLException;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StringUtilities {
+    static OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+    static OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
 
-	//private static OWLAxiomIndex ontology;
-	static OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-	static OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
-	
+    public static String splitCompounds(String input) {
+        String[] compounds = input.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
+        StringBuilder sb = new StringBuilder();
 
+        for (String compound : compounds) {
+            sb.append(compound).append(" ");
+        }
+        return sb.toString();
+    }
 
+    public static void fixAlignmentName(String folder) throws IOException {
+        File allFiles = new File(folder);
+        File[] files = allFiles.listFiles();
+        System.err.println("Number of files: " + Objects.requireNonNull(files).length);
 
-	public static String splitCompounds(String input) {
+        String fileName = null;
+        File newFile = null;
 
-//		String[] compounds = input.split("(?<=.)(?=\\p{Lu})");
-		String[] compounds = input.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
+        for (File file : files) {
+            fileName = file.getName();
+            file.renameTo(new File(fileName = "./files/DBLP-Scholar/alignments/new/" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_")));
+        }
+    }
 
-		StringBuilder sb = new StringBuilder();
+    /**
+     * Takes a string as input and returns an arraylist of tokens from this string
+     *
+     * @param s:         the input string to tokenize
+     * @param lowercase: if the output tokens should be lowercased
+     * @return an ArrayList of tokens
+     */
+    public static ArrayList<String> tokenize(String s, boolean lowercase) {
+        if (s == null) {
+            return null;
+        }
 
-		for (int i = 0; i < compounds.length; i++) {
+        ArrayList<String> strings = new ArrayList<>();
+        performTokinization(s, lowercase, strings);
+        return strings;
+    }
 
-			sb.append(compounds[i] + " ");
+    private static void performTokinization(String s, boolean lowercase, Collection<String> strings) {
+        String current = "";
+        Character prevC = 'x';
+        for (Character c : s.toCharArray()) {
+            if ((Character.isLowerCase(prevC) && Character.isUpperCase(c)) ||
+                    c == '_' || c == '-' || c == ' ' || c == '/' || c == '\\' || c == '>') {
+                current = current.trim();
+                if (current.length() > 0) {
+                    if (lowercase)
+                        strings.add(current.toLowerCase());
+                    else
+                        strings.add(current);
+                }
+                current = "";
+            }
 
-		}
+            if (c != '_' && c != '-' && c != '/' && c != '\\' && c != '>') {
+                current += c;
+                prevC = c;
+            }
+        }
 
-		String compoundedString = sb.toString();
+        current = current.trim();
+        if (current.length() > 0) {
+            // this check is to handle the id numbers in YAGO
+            if (!(current.length() > 4 && Character.isDigit(current.charAt(0)) &&
+                    Character.isDigit(current.charAt(current.length() - 1)))) {
+                strings.add(current.toLowerCase());
+            }
+        }
+    }
 
-		return compoundedString;
-	}
+    /**
+     * Takes a string as input and returns set of tokens from this string
+     *
+     * @param s:         the input string to tokenize
+     * @param lowercase: if the output tokens should be lowercased
+     * @return a set of tokens
+     */
+    public static Set<String> tokenizeToSet(String s, boolean lowercase){
+        if (s == null) {
+            return null;
+        }
 
-	public static void fixAlignmentName(String folder) throws IOException {
-		
-		File allFiles = new File(folder);
-
-		File[] files = allFiles.listFiles();
-		System.err.println("Number of files: " + files.length);
-		
-		String fileName = null;
-		File newFile = null;
-		
-		for (int i = 0; i < files.length; i++) {
-			
-			fileName = files[i].getName();
-			//System.out.println("Filename is " + fileName);
-			files[i].renameTo(new File(fileName = "./files/DBLP-Scholar/alignments/new/" + fileName.replaceAll("[^a-zA-Z0-9.-]", "_")));
-			
-			//System.out.println("New Filename is " + fileName);
-			
-		}
-	}
-
-	/**
-	 * Takes a string as input and returns an arraylist of tokens from this string
-	 * @param s: the input string to tokenize
-	 * @param lowercase: if the output tokens should be lowercased
-	 * @return an ArrayList of tokens
-	 */
-	public static ArrayList<String> tokenize(String s, boolean lowercase) {
-		if (s == null) {
-			return null;
-		}
-
-		ArrayList<String> strings = new ArrayList<String>();
-
-		String current = "";
-		Character prevC = 'x';
-
-		for (Character c: s.toCharArray()) {
-
-			if ((Character.isLowerCase(prevC) && Character.isUpperCase(c)) || 
-					c == '_' || c == '-' || c == ' ' || c == '/' || c == '\\' || c == '>') {
-
-				current = current.trim();
-
-				if (current.length() > 0) {
-					if (lowercase) 
-						strings.add(current.toLowerCase());
-					else
-						strings.add(current);
-				}
-
-				current = "";
-			}
-
-			if (c != '_' && c != '-' && c != '/' && c != '\\' && c != '>') {
-				current += c;
-				prevC = c;
-			}
-		}
-
-		current = current.trim();
-
-		if (current.length() > 0) {
-			// this check is to handle the id numbers in YAGO
-			if (!(current.length() > 4 && Character.isDigit(current.charAt(0)) && 
-					Character.isDigit(current.charAt(current.length()-1)))) {
-				strings.add(current.toLowerCase());
-			}
-		}
-
-		return strings;
-	}
-	
-	/**
-	 * Takes a string as input and returns set of tokens from this string
-	 * @param s: the input string to tokenize
-	 * @param lowercase: if the output tokens should be lowercased
-	 * @return a set of tokens
-	 * @throws IOException 
-	 */
-	public static Set<String> tokenizeToSet(String s, boolean lowercase) throws IOException {
-		if (s == null) {
-			return null;
-		}
-		
-		//remove stopwords
-		String stringWOStopWords = removeStopWords(s);
-
-		Set<String> strings = new HashSet<String>();
-
-		String current = "";
-		Character prevC = 'x';
-
-		for (Character c: stringWOStopWords.toCharArray()) {
-
-			if ((Character.isLowerCase(prevC) && Character.isUpperCase(c)) || 
-					c == '_' || c == '-' || c == ' ' || c == '/' || c == '\\' || c == '>') {
-
-				current = current.trim();
-
-				if (current.length() > 0) {
-					if (lowercase) 
-						strings.add(current.toLowerCase());
-					else
-						strings.add(current);
-				}
-
-				current = "";
-			}
-
-			if (c != '_' && c != '-' && c != '/' && c != '\\' && c != '>') {
-				current += c;
-				prevC = c;
-			}
-		}
-
-		current = current.trim();
-
-		if (current.length() > 0) {
-			if (!(current.length() > 4 && Character.isDigit(current.charAt(0)) && 
-					Character.isDigit(current.charAt(current.length()-1)))) {
-				strings.add(current.toLowerCase());
-			}
-		}
-
-		return strings;
-	}
-	
+        String stringWOStopWords = removeStopWords(s);
+        Set<String> strings = new HashSet<>();
+        performTokinization(stringWOStopWords, lowercase, strings);
+        return strings;
+    }
 
 
-	
-	
-	/**
-	 * Returns a string of tokens
-	 * @param s: the input string to be tokenized
-	 * @param lowercase: whether the output tokens should be in lowercase
-	 * @return a string of tokens from the input string
-	 */
-	public static String stringTokenize(String s, boolean lowercase) {
-		String result = "";
-
-		ArrayList<String> tokens = tokenize(s, lowercase);
-		for (String token: tokens) {
-			result += token + " ";
-		}
-
-		return result.trim();
-	}
+    /**
+     * Returns a string of tokens
+     *
+     * @param s:         the input string to be tokenized
+     * @param lowercase: whether the output tokens should be in lowercase
+     * @return a string of tokens from the input string
+     */
+    public static String stringTokenize(String s, boolean lowercase) {
+        StringBuilder result = new StringBuilder();
+        ArrayList<String> tokens = tokenize(s, lowercase);
+        for (String token : tokens) {
+            result.append(token).append(" ");
+        }
+        return result.toString().trim();
+    }
 
 
-	/**
-	 * Removes prefix from property names (e.g. hasCar is transformed to car)
-	 * @param s: the input property name to be 
-	 * @return a string without any prefix
-	 */
-	public static String stripPrefix(String s) {
+    /**
+     * Removes prefix from property names (e.g. hasCar is transformed to car)
+     *
+     * @param s: the input property name to be
+     * @return a string without any prefix
+     */
+    public static String stripPrefix(String s) {
+        if (s.startsWith("has")) {
+            s = s.replaceAll("^has", "");
+        } else if (s.startsWith("is")) {
+            s = s.replaceAll("^is", "");
+        } else if (s.startsWith("is_a_")) {
+            s = s.replaceAll("^is_a_", "");
+        } else if (s.startsWith("has_a_")) {
+            s = s.replaceAll("^has_a_", "");
+        } else if (s.startsWith("was_a_")) {
+            s = s.replaceAll("^was_a_", "");
+        } else if (s.endsWith("By")) {
+            s = s.replaceAll("By", "");
+        } else if (s.endsWith("_by")) {
+            s = s.replaceAll("_by^", "");
+        } else if (s.endsWith("_in")) {
+            s = s.replaceAll("_in^", "");
+        } else if (s.endsWith("_at")) {
+            s = s.replaceAll("_at^", "");
+        }
+        s = s.replaceAll("_", " ");
+        s = stringTokenize(s, true);
 
-		if (s.startsWith("has")) {
-			s = s.replaceAll("^has", "");
-		} else if (s.startsWith("is")) {
-			s = s.replaceAll("^is", "");
-		} else if (s.startsWith("is_a_")) {
-			s = s.replaceAll("^is_a_", "");
-		} else if (s.startsWith("has_a_")) {
-			s = s.replaceAll("^has_a_", "");
-		} else if (s.startsWith("was_a_")) {
-			s = s.replaceAll("^was_a_", "");
-		} else if (s.endsWith("By")) {
-			s = s.replaceAll("By", "");
-		} else if (s.endsWith("_by")) {
-			s = s.replaceAll("_by^", "");
-		} else if (s.endsWith("_in")) {
-			s = s.replaceAll("_in^", "");
-		} else if (s.endsWith("_at")) {
-			s = s.replaceAll("_at^", "");
-		}
-		s = s.replaceAll("_", " ");
-		s = stringTokenize(s,true);
+        return s;
+    }
 
-		return s;
-	}
-	
-	//line1 = line1.replace("\"", "");
-	public static String removeSymbols(String s) {
-		s = s.replace("\"", "");
-		s = s.replace(".", "");
-		s = s.replace("@en", "");
-		
-		return s;
-	}
+    //line1 = line1.replace("\"", "");
+    public static String removeSymbols(String s) {
+        s = s.replace("\"", "");
+        s = s.replace(".", "");
+        s = s.replace("@en", "");
 
-	/**
-	 * Takes a filename as input and removes the IRI prefix from this file
-	 * @param fileName
-	 * @return filename - without IRI
-	 */
-	public static String stripPath(String fileName) {
-		String trimmedPath = fileName.substring(fileName.lastIndexOf("/") + 1);
-		return trimmedPath;
+        return s;
+    }
 
-	}
+    /**
+     * Takes a filename as input and removes the IRI prefix from this file
+     *
+     * @param fileName
+     * @return filename - without IRI
+     */
+    public static String stripPath(String fileName) {
+        return fileName.substring(fileName.lastIndexOf("/") + 1);
+
+    }
 
 //	/**
 //	 * Takes a string as input, tokenizes it, and removes stopwords from this string
@@ -279,135 +209,120 @@ public class StringUtilities {
 //	}
 
 
-	/**
-	 * Returns the label from on ontology concept without any prefix
-	 * @param label: an input label with a prefix (e.g. an IRI prefix) 
-	 * @return a label without any prefix
-	 */
-	public static String getString(String label) {
+    /**
+     * Returns the label from on ontology concept without any prefix
+     *
+     * @param label: an input label with a prefix (e.g. an IRI prefix)
+     * @return a label without any prefix
+     */
+    public static String getString(String label) {
+        if (label.contains("#")) {
+            label = label.substring(label.indexOf('#') + 1);
+            return label;
+        }
 
-		if (label.contains("#")) {
-			label = label.substring(label.indexOf('#')+1);
-			return label;
-		}
+        if (label.contains("/")) {
+            label = label.substring(label.lastIndexOf('/') + 1);
+            return label;
+        }
+        return label;
+    }
 
-		if (label.contains("/")) {
-			label = label.substring(label.lastIndexOf('/')+1);
-			return label;
-		}
+    /**
+     * Removes underscores from a string (replaces underscores with "no space")
+     *
+     * @param input: string with an underscore
+     * @return string without any underscores
+     */
+    public static String replaceUnderscore(String input) {
+        String newString = null;
+        Pattern p = Pattern.compile("_([a-zA-Z])");
+        Matcher m = p.matcher(input);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            m.appendReplacement(sb, m.group(1).toUpperCase());
+        }
 
-		return label;
-	}
+        m.appendTail(sb);
+        newString = sb.toString();
 
-	/**
-	 * Removes underscores from a string (replaces underscores with "no space")
-	 * @param input: string with an underscore
-	 * @return string without any underscores
-	 */
-	public static String replaceUnderscore (String input) {
-		String newString = null;
-		Pattern p = Pattern.compile( "_([a-zA-Z])" );
-		Matcher m = p.matcher(input);
-		StringBuffer sb = new StringBuffer();
-		while (m.find()) {
-			m.appendReplacement(sb, m.group(1).toUpperCase());
-		}
+        return newString;
+    }
 
-		m.appendTail(sb);
-		newString = sb.toString();
+    /**
+     * Checks if an input string is an abbreviation (by checking if there are two consecutive uppercased letters in the string)
+     *
+     * @param s input string
+     * @return boolean stating whether the input string represents an abbreviation
+     */
+    public static boolean isAbbreviation(String s) {
 
-		return newString;
-	}
+        boolean isAbbreviation = false;
+        int counter = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isUpperCase(s.charAt(i))) {
+                counter++;
+            }
+            isAbbreviation = counter > 2;
+        }
+        return isAbbreviation;
+    }
 
-	/**
-	 * Checks if an input string is an abbreviation (by checking if there are two consecutive uppercased letters in the string)
-	 * @param s input string
-	 * @return boolean stating whether the input string represents an abbreviation
-	 */
-	public static boolean isAbbreviation(String s) {
+    /**
+     * Returns the names of the ontology from the full file path (including owl or rdf suffixes)
+     *
+     * @param ontology name without suffix
+     * @return
+     */
+    public static String stripOntologyName(String fileName) {
+        String trimmedPath = fileName.substring(fileName.lastIndexOf("/") + 1);
+        String owl = ".owl";
+        String rdf = ".rdf";
+        String stripped = null;
 
-		boolean isAbbreviation = false;
+        if (fileName.endsWith(".owl")) {
+            stripped = trimmedPath.substring(0, trimmedPath.indexOf(owl));
+        } else {
+            stripped = trimmedPath.substring(0, trimmedPath.indexOf(rdf));
+        }
 
-		int counter = 0;
+        return stripped;
+    }
 
-		//iterate through the string
-		for (int i=0; i<s.length(); i++) {
+    /**
+     * Returns the full IRI of an input ontology
+     *
+     * @param o the input OWLOntology
+     * @return the IRI of an OWLOntology
+     */
+    public static String getOntologyIRI(OWLOntology o) {
+        return o.getOntologyID().getOntologyIRI().toString();
+    }
 
-			if (Character.isUpperCase(s.charAt(i))) {
-				counter++;
-			}
-			if (counter > 2) {
-				isAbbreviation = true;
-			} else {
-				isAbbreviation = false;
-			}
-		} 
+    /**
+     * Convert from a filename to a file URL.
+     */
+    public static String convertToFileURL(String filename) {
+        String path = new File(filename).getAbsolutePath();
+        if (File.separatorChar != '/') {
+            path = path.replace(File.separatorChar, '/');
+        }
 
-		return isAbbreviation;
-	}
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        return "file:" + path;
+    }
 
-	/**
-	 * Returns the names of the ontology from the full file path (including owl or rdf suffixes)
-	 * @param ontology name without suffix
-	 * @return
-	 */
-	public static String stripOntologyName(String fileName) {
+    public static String validateRelationType(String relType) {
+        if (relType.equals("<")) {
+            relType = "&lt;";
+        }
+        return relType;
+    }
 
-		String trimmedPath = fileName.substring(fileName.lastIndexOf("/") + 1);
-		String owl = ".owl";
-		String rdf = ".rdf";
-		String stripped = null;
-
-		if (fileName.endsWith(".owl")) {
-			stripped = trimmedPath.substring(0, trimmedPath.indexOf(owl));
-		} else {
-			stripped = trimmedPath.substring(0, trimmedPath.indexOf(rdf));
-		}
-
-		return stripped;
-	}
-
-	/**
-	 * Returns the full IRI of an input ontology
-	 * @param o the input OWLOntology
-	 * @return the IRI of an OWLOntology
-	 */
-	public static String getOntologyIRI(OWLOntology o) {
-		String ontologyIRI = o.getOntologyID().getOntologyIRI().toString();
-
-		return ontologyIRI;
-	}
-
-	/**
-	 * Convert from a filename to a file URL.
-	 */
-	public static String convertToFileURL ( String filename )
-	{
-
-		String path = new File ( filename ).getAbsolutePath ();
-		if ( File.separatorChar != '/' )
-		{
-			path = path.replace ( File.separatorChar, '/' );
-		}
-		if ( !path.startsWith ( "/" ) )
-		{
-			path = "/" + path;
-		}
-		String retVal =  "file:" + path;
-
-		return retVal;
-	}
-
-	public static String validateRelationType (String relType) {
-		if (relType.equals("<")) {
-			relType = "&lt;";
-		}
-
-		return relType;
-	}
-
-	//NOTE: There is a Lucene conflict between this implementation of Lucene and the Lucene version used by Neo4J. When running this method the Lucene import declarations in the POM.xml file needs to be "uncommented", and...
-		//...when running Neo4J they have to be commented out. 
+    //NOTE: There is a Lucene conflict between this implementation of Lucene and the Lucene version used by Neo4J. When running this method the Lucene import declarations in the POM.xml file needs to be "uncommented", and...
+    //...when running Neo4J they have to be commented out.
 	  
 	/* public static String removeStopWordsfromFile(File inputFile) throws IOException {
 
@@ -466,166 +381,115 @@ public class StringUtilities {
 
 	}*/
 
-	public static String removeStopWords (String inputString) {
+    public static String removeStopWords(String inputString) {
+        List<String> stopWordsList = Arrays.asList(
+                "a", "an", "and", "are", "as", "at", "be", "but", "by",
+                "for", "if", "in", "into", "is", "it",
+                "no", "not", "of", "on", "or", "such",
+                "that", "the", "their", "then", "there", "these",
+                "they", "this", "to", "was", "will", "with"
+        );
 
-		List<String> stopWordsList = Arrays.asList(
-				"a", "an", "and", "are", "as", "at", "be", "but", "by",
-				"for", "if", "in", "into", "is", "it",
-				"no", "not", "of", "on", "or", "such",
-				"that", "the", "their", "then", "there", "these",
-				"they", "this", "to", "was", "will", "with"
-				);
+        String[] words = inputString.split(" ");
+        ArrayList<String> wordsList = new ArrayList<String>();
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            String wordCompare = word.toLowerCase();
+            if (!stopWordsList.contains(wordCompare)) {
+                wordsList.add(word);
+            }
+        }
 
-		String output;
-		String[] words = inputString.split(" ");
-		ArrayList<String> wordsList = new ArrayList<String>();
-		StringBuffer sb = new StringBuffer();
+        for (String str : wordsList) {
+            sb.append(str).append(" ");
+        }
 
-		for(String word : words)
-		{
-			String wordCompare = word.toLowerCase();
-			if(!stopWordsList.contains(wordCompare))
-			{
-				wordsList.add(word);
-			}
-		}
+        return sb.toString();
+    }
 
-		for (String str : wordsList){
-			sb.append(str + " ");
-		}
+    /**
+     * Takes as input a String and produces an array of Strings from this String
+     *
+     * @param s
+     * @return result
+     */
+    public static String[] split(String s) {
+        return s.split(" ");
+    }
 
-		return output = sb.toString();
-	}
+    public static boolean isCompoundWord(String s) {
+        String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
+        return compounds.length > 1 && !StringUtils.isAllUpperCase(s);
 
-	/**
-	 * Takes as input a String and produces an array of Strings from this String
-	 * @param s
-	 * @return result
-	 */
-	public static String[] split(String s) {
-		String[] result = s.split(" ");
+    }
 
-		return result;
-	}
-	
-	public static boolean isCompoundWord(String s) {
-		String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
-		
-		//must check if s is not all uppercase
-		if (compounds.length > 1 && !StringUtils.isAllUpperCase(s)) {
-			return true;
-		} else {
-			return false;
-		}
-		
-	}
-	
-	public static String splitCompoundString(String s) {
-		StringBuffer splitCompound = new StringBuffer();
-		String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
-		
-		for (int i = 0; i < compounds.length; i++) {
-			splitCompound.append(" " + compounds[i]);
-		}
-		
-		return splitCompound.toString();
-		
-	}
-	
-	public static String getCompoundWordWithSpaces (String s) {
-		
-		//System.err.println("From getCompoundWordsWithSpaces: String s is " + s);
-		
-		StringBuffer sb = new StringBuffer();
-		
-		ArrayList<String> compoundWordsList = getWordsFromCompound(s);
-		
-		//System.err.println("From getCompoundWordsWithSpaces: The size of compoundWordsList is  " + compoundWordsList.size());
-		
-		for (String word : compoundWordsList) {
-			
-			sb.append(word + " ");
-			
-		}
-		
-		String compoundWordWithSpaces = sb.toString();
-		
-		return compoundWordWithSpaces;
-	}
-	
-	public static String getCompoundHead(String s) {
-		
-		if (isCompoundWord(s)) {
-		
-		String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
-		
-		String compoundHead = compounds[compounds.length-1];
-		
-		return compoundHead;
-		
-		} else {
-			return null;
-		}
-	}
-	
-	public static String getCompoundQualifier(String s) {
-		String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
-		
-		String compoundHead = compounds[0];
-		
-		return compoundHead;
-	}
-	
-	public static String getCompoundModifier(String s) {
-		
-		return s.replace(getCompoundHead(s), "");
-	}
-	
-	public static ArrayList<String> getWordsFromCompound (String s) {
-		String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
-		
-		ArrayList<String> compoundWordsList = new ArrayList<String>();
-		
-		for (int i = 0; i < compounds.length; i++) {
-			compoundWordsList.add(compounds[i]);
-		}
-		
-		return compoundWordsList;
-		
-	}
-	
-	public static Set<String> getWordsAsSetFromCompound (String s) {
-		String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
-		
-		Set<String> compoundWordsList = new HashSet<String>();
-		
-		for (int i = 0; i < compounds.length; i++) {
-			compoundWordsList.add(compounds[i]);
-		}
-		
-		return compoundWordsList;
-		
-	}
-	
-	public static int countCharsInString (String s) {
+    public static String splitCompoundString(String s) {
+        StringBuilder splitCompound = new StringBuilder();
+        String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
+        for (String compound : compounds) {
+            splitCompound.append(" ").append(compound);
+        }
 
-	    int counter = 0;
-	    for (int i = 0; i < s.length(); i++) {
-	      if (Character.isLetter(s.charAt(i)))
-	        counter++;
-	    }
-	    
-	    return counter;
-	}
+        return splitCompound.toString();
 
-	// ***Methods not in use***
+    }
 
-	/*	*//**
-	 * Takes as input a Set of strings along with a separator (usually whitespace) and uses StringBuilder to create a string from the Set.
-	 * @param set
-	 * @param sep
-	 * @return result
-	 *//*
+    public static String getCompoundWordWithSpaces(String s) {
+        StringBuilder sb = new StringBuilder();
+        ArrayList<String> compoundWordsList = getWordsFromCompound(s);
+        for (String word : compoundWordsList) {
+            sb.append(word).append(" ");
+        }
+        return sb.toString();
+    }
+
+    public static String getCompoundHead(String s) {
+        if (isCompoundWord(s)) {
+            String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
+            return compounds[compounds.length - 1];
+        } else {
+            return null;
+        }
+    }
+
+    public static String getCompoundQualifier(String s) {
+        String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
+        return compounds[0];
+    }
+
+    public static String getCompoundModifier(String s) {
+        return s.replace(Objects.requireNonNull(getCompoundHead(s)), "");
+    }
+
+    public static ArrayList<String> getWordsFromCompound(String s) {
+        String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
+        return new ArrayList<>(Arrays.asList(compounds));
+
+    }
+
+    public static Set<String> getWordsAsSetFromCompound(String s) {
+        String[] compounds = s.split("(?<=.)(?=\\p{Lu})");
+        return new HashSet<>(Arrays.asList(compounds));
+
+    }
+
+    public static int countCharsInString(String s) {
+        int counter = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isLetter(s.charAt(i)))
+                counter++;
+        }
+        return counter;
+    }
+
+    // ***Methods not in use***
+
+    /*	*//**
+     * Takes as input a Set of strings along with a separator (usually whitespace) and uses StringBuilder to create a string from the Set.
+     * @param set
+     * @param sep
+     * @return result
+     *//*
 	public static String join(Set<String> set, String sep) {
 		String result = null;
 		if(set != null) {
@@ -644,15 +508,18 @@ public class StringUtilities {
 
 
 
-	/*	*//**
-	 * Takes as input two arrays of String and compares each string in one array with each string in the other array if they are equal
-	 * @param s1
-	 * @param s2
-	 * @return results - basically an iterator that counts the number of equal strings in the two arrays
-	 * @throws OWLOntologyCreationException 
-	 * @throws IOException 
-	 * @throws JWNLException 
-	 *//*
+    /*	*/
+
+    /**
+     * Takes as input two arrays of String and compares each string in one array with each string in the other array if they are equal
+     *
+     * @param s1
+     * @param s2
+     * @return results - basically an iterator that counts the number of equal strings in the two arrays
+     * @throws OWLOntologyCreationException
+     * @throws IOException
+     * @throws JWNLException
+     *//*
 	public static int commonWords(String[] s1, String[] s2) {
 
 		int results = 0;
@@ -705,12 +572,9 @@ public class StringUtilities {
 
 		return label;
 	}*/
-
-	public static void main(String args[]) throws OWLOntologyCreationException, IOException, JWNLException {
-		
-		String word = "MusicPublisherNumber";
-		
-		System.out.println("The modifier is " + getCompoundModifier(word));
+    public static void main(String args[]) throws OWLOntologyCreationException, IOException, JWNLException {
+        String word = "MusicPublisherNumber";
+        System.out.println("The modifier is " + getCompoundModifier(word));
 //		
 //		
 //		String test = "regularly";
@@ -752,9 +616,9 @@ public class StringUtilities {
 //		System.out.println(stringTokenize(def, true));
 //		
 //		
-			
-		//fixAlignmentName(folder);
-		
+
+        //fixAlignmentName(folder);
+
 //		String s = stringTokenize("AircraftEngine", false).toLowerCase();
 //		
 //		System.out.println(s + " contains " + countCharsInString(s) + " characters");
@@ -820,8 +684,7 @@ public class StringUtilities {
 		
 		System.out.println(word);
 		*/
-	}
-
+    }
 
 
 }
