@@ -158,9 +158,7 @@ public class OntologyOperations {
 				}
 			}
 		}
-
-		OWLClass cls = labelToClassMap.get(label);
-		return cls;
+		return labelToClassMap.get(label);
 	}
 
 	/**
