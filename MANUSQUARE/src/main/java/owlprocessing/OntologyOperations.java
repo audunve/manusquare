@@ -53,52 +53,6 @@ public class OntologyOperations {
 		File ontoFile = new File("./files/_PHD_EVALUATION/OAEI2011/ONTOLOGIES/301304/301304-301.rdf");
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontoFile);
-
-//		for (OWLClass cls : onto.getClassesInSignature()) {
-//			System.out.println("Classname: " + cls.getIRI().getFragment());
-//			System.out.println("Labelname: " + getLabel(cls, onto));
-//		}
-
-		//		Set<OWLObjectProperty> ops = onto.getObjectPropertiesInSignature();
-		//		for (OWLObjectProperty op : ops) {
-		//			Set<OWLAnnotation> annotations = op.getAnnotations(onto);
-		//			for (OWLAnnotation ann : annotations) {
-		//				System.out.println(ann.getValue());
-		//			}
-		//		}
-
-		//		//public static Map<String, Set<String>> getSubclasses(OWLOntology onto) {
-		//		Map<String, Set<String>> classesAndSubclassesMap = getSubclasses(onto);
-		//		
-		//		for (Entry<String, Set<String>> e : classesAndSubclassesMap.entrySet()) {
-		//			System.out.println(StringUtilities.getString(e.getKey()));
-		//			Set<String> subs = e.getValue();
-		//			for (String s : subs) {
-		//				System.out.println("\t" + StringUtilities.getString(s));
-		//			}
-		//		}
-		//		
-		//		
-		//		
-		//		
-		//		System.out.println("ATM Onto contains " + getNumClasses(ontoFile) + " classes");
-
-
-		//		OWLClass c = getClass("AirspaceLayer", onto);
-		//		//public static Set<OWLClass> getClassesTwoStepsAway (OWLOntology onto, OWLClass cls) {
-		//		Set<OWLClass> context = getClassesTwoStepsAway (onto, c);
-		//		
-		//		System.out.println("The context set contains " + context.size() + " classes");
-		//		for (OWLClass cl : context) {
-		//			System.out.println(cl);
-		//		}
-
-//		OWLDataFactory df = OWLManager.getOWLDataFactory();
-//		OWLReasoner reasoner = reasonerFactory.createReasoner(onto);
-//		NodeSet<OWLClass> subclasses = reasoner.getSubClasses(df.getOWLThing(), true);
-//		for (Node<OWLClass> cl : subclasses) {
-//
-//		}
 		
 		System.out.println("\nTesting getClassDefinitionsFull()");
 		
@@ -265,6 +219,30 @@ public class OntologyOperations {
 		return subclsSet;
 
 	}
+	
+//	/**
+//	 * Helper method that retrieves a set of subclasses (fragments or proper name without URI) for an OWLClass (provided as parameter along with the OWLOntology which is needed for allowing the reasoner to get all subclasses for an OWLClass)
+//	 * @param onto the input OWLOntology
+//	 * @param inputClass the OWLClass for which subclasses will be retrieved
+//	 * @return Set<String> of subclasses for an OWLClass
+//	 */
+//	public static Set<String> getAllEntitySubclassesFragments (OWLOntology onto, OWLClass inputClass) {
+//		OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+//		OWLReasoner reasoner = reasonerFactory.createReasoner(onto);
+//
+//		NodeSet<OWLClass> subclasses = reasoner.getSubClasses(inputClass, false);
+//
+//		Set<String> subclsSet = new HashSet<String>();
+//
+//		for (OWLClass cls : subclasses.getFlattened()) {
+//			if (!cls.isOWLNothing()) {
+//				subclsSet.add(cls.getIRI().getFragment().toString());
+//			}
+//		}
+//
+//		return subclsSet;
+//
+//	}
 
 	/**
 	 * Retrieves the superclasses for each entity in an ontology and returns a Map where the entity name is key and the set of associated superclasses is value

@@ -1,4 +1,4 @@
-package testing;
+package supplierdata;
 
 public class SupplierResource {
 	

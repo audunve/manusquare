@@ -15,6 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+/**
+ * Testing GraphDB
+ * @author audunvennesland
+ *
+ */
 public class SimpleInsertQueryExample {
   private static Logger logger = 
     LoggerFactory.getLogger(SimpleInsertQueryExample.class);

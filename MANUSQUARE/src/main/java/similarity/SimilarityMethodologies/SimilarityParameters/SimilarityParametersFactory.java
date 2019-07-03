@@ -15,6 +15,8 @@ public class SimilarityParametersFactory {
                     return new ResnikSimilarityParameters(sourceNode, targetNode, label, ontology);
             case LIN:
                 return new LinSimilarityParameters(sourceNode, targetNode, label, ontology);
+            case JIANG_CONRATH:
+                return new JiangConrathSimilarityParameters(sourceNode, targetNode, label, ontology);
             default:
                 throw new UnsupportedOperationException("Invalid methodology for creating Neo4J Parameters:: " + methodology);
         }

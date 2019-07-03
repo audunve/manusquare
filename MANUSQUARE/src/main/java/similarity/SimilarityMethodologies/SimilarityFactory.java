@@ -11,6 +11,8 @@ public class SimilarityFactory {
                 return new ResnikSimilarity();
             case LIN:
                 return new LinSimilarity();
+            case JIANG_CONRATH:
+                return new JiangConrathSimilarity();
             default:
                 throw new UnsupportedOperationException("Invalid similarity method selected to compute similarity :: " + method);
         }

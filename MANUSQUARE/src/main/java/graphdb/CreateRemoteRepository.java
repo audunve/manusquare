@@ -28,6 +28,11 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+/**
+ * Connects to GraphDB - just for testing
+ * @author audunvennesland
+ *
+ */
 public class CreateRemoteRepository {
   private static Logger logger = LoggerFactory.getLogger(CreateRemoteRepository.class);
   // Why This Failure marker

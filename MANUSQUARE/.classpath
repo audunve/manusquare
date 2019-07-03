@@ -28,13 +28,12 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/Prosjekter/SINTEF/manusquare/manusquare/MANUSQUARE/lib/jwnl.jar"/>
-	<classpathentry kind="lib" path="D:/Prosjekter/SINTEF/manusquare/manusquare/MANUSQUARE/lib/owlapi-bin.jar"/>
-	<classpathentry kind="lib" path="D:/Prosjekter/SINTEF/manusquare/manusquare/MANUSQUARE/lib/owlapi-dependencypack-5.1.9.jar"/>
-	<classpathentry kind="lib" path="D:/Prosjekter/SINTEF/manusquare/manusquare/MANUSQUARE/lib/owlapi-distribution-5.1.10.jar"/>
-	<classpathentry kind="lib" path="D:/Prosjekter/SINTEF/manusquare/manusquare/MANUSQUARE/lib/rita.jar"/>
-	<classpathentry kind="lib" path="D:/Prosjekter/SINTEF/manusquare/manusquare/MANUSQUARE/lib/rita.support.jar"/>
-	<classpathentry kind="lib" path="D:/Prosjekter/SINTEF/manusquare/manusquare/MANUSQUARE/lib/ws4j-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jwnl.jar"/>
+	<classpathentry kind="lib" path="lib/owlapi-bin.jar"/>
+	<classpathentry kind="lib" path="lib/owlapi-dependencypack-5.1.9.jar"/>
+	<classpathentry kind="lib" path="lib/owlapi-distribution-5.1.10.jar"/>
+	<classpathentry kind="lib" path="lib/rita.jar"/>
+	<classpathentry kind="lib" path="lib/rita.support.jar"/>
+	<classpathentry kind="lib" path="lib/ws4j-1.0.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

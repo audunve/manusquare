@@ -18,6 +18,68 @@ import java.util.regex.Pattern;
 public class StringUtilities {
     static OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
     static OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+    
+    /**
+	 * Returns ONE string by random from a list of strings
+	 * @param listOfStrings
+	 * @return
+	   Jul 2, 2019
+	 */
+	public static String getRandomString1(List<String> listOfStrings) {
+		Random rand = new Random();
+		String returnedString = null;
+
+		int numberOfElements = 1;
+
+		for (int i = 0; i < numberOfElements; i++) {
+			int randomIndex = rand.nextInt(listOfStrings.size());
+			returnedString = listOfStrings.get(randomIndex);
+
+		}
+
+		return returnedString;
+	}
+
+	/**
+	 * Returns THREE string by random from a list of strings
+	 * @param listOfStrings
+	 * @return
+	   Jul 2, 2019
+	 */
+	public static Set<String> getRandomString3(List<String> listOfStrings) {
+		Random rand = new Random();
+		Set<String> returnedStrings = new HashSet<String>();
+
+		int numberOfElements = 3;
+
+		for (int i = 0; i < numberOfElements; i++) {
+			int randomIndex = rand.nextInt(listOfStrings.size());
+			returnedStrings.add(listOfStrings.get(randomIndex));
+		}
+
+		return returnedStrings;
+	}
+
+	/**
+	 * Returns ONE integer by random from a list of integers
+	 * @param list
+	 * @return
+	   Jul 2, 2019
+	 */
+	public static int getRandomInt1(List<Integer> list) {
+		Random rand = new Random();
+		int returnedString = 0;
+
+		int numberOfElements = 1;
+
+		for (int i = 0; i < numberOfElements; i++) {
+			int randomIndex = rand.nextInt(list.size());
+			returnedString = list.get(randomIndex);
+
+		}
+
+		return returnedString;
+	}
 
     public static String splitCompounds(String input) {
         String[] compounds = input.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
