@@ -262,6 +262,7 @@ public class Graph {
             for (Path childNodePath : childNodesTraverser) {
                 if (childNodePath.endNode().hasLabel(label)) {
                     childNodeList.add(childNodePath.endNode().getProperty(key));
+                    System.out.println("Adding child-node " + childNodePath.endNode().getProperty(key) + " to list");
                 }
             }
             tx.success();
@@ -334,6 +335,8 @@ public class Graph {
      * @return all parent nodes to node provided as parameter
      */
     public static ArrayList<Node> getAllParentNodes(Node classNode, Label label) {
+    	
+    //System.err.println("Getting parent nodes of " + getNodeName(classNode));
 
         ArrayList<Node> parentNodeList = new ArrayList<Node>();
         Traverser parentNodeTraverser = null;

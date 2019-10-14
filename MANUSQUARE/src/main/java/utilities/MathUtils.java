@@ -16,8 +16,8 @@ public class MathUtils {
         System.out.println("The result from running the RiMOM sigmoid function is " + sigmoidRiMom(high));
         System.out.println("The result from running the regular sigmoid function is " + sigmoid(high));
 
-        int subConcepts = 1;
-        int totalConcepts = 8;
+        int subConcepts = 3;
+        int totalConcepts = 1065;
         double ic = computeInformationContent(subConcepts, totalConcepts);
         System.out.println("The information content (IC) is " + ic);
 

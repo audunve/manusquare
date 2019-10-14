@@ -2,13 +2,11 @@ package importtestdata;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +30,12 @@ public class CreateTestData {
 
 		int numSupplierResourceRecordsToPrint = 900;
 
-		File ontologyFile = new File ("./files/manusquare-consumer.owl");
+		File ontologyFile = new File ("./files/ONTOLOGIES/manusquare-consumer.owl");
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontologyFile);		
-		String inputCSV = "./files/CSV2Set_971suppliers.csv";
-		String SETOutputCSV = "./files/SET_ResourceRecords.csv";
-		String OWLOutputCSV = "./files/OWL_ResourceRecords.csv";
+		String inputCSV = "./files/TESTDATA/CSV2Set_971suppliers.csv";
+		String SETOutputCSV = "./files/TESTDATA/SET_ResourceRecords.csv";
+		String OWLOutputCSV = "./files/TESTDATA/OWL_ResourceRecords.csv";
 
 		String machineScope = "MachineType";
 		String processScope = "SubtractionProcess";

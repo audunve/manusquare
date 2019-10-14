@@ -39,6 +39,14 @@ public class Resource {
 		this.availableTo = availableTo;
 	}
 	
+	public Resource(String material, String process, String machine, Set<String> certifications) {
+		super();
+		this.material = material;
+		this.process = process;
+		this.machine = machine;
+		this.certifications = certifications;
+	}
+	
 	public Resource() {}
 	
 	
@@ -107,6 +115,14 @@ public class Resource {
 	public void setAvailableTo(String availableTo) {
 		this.availableTo = availableTo;
 	}
+
+	@Override
+	public String toString() {
+		return "Resource [supplier=" + supplier + ", capacity=" + capacity + ", material=" + material + ", process="
+				+ process + ", machine=" + machine + ", certifications=" + certifications + ", availableFrom="
+				+ availableFrom + ", availableTo=" + availableTo + "]";
+	}
+	
 	
 	
 

@@ -2,7 +2,6 @@ package importtestdata;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
@@ -15,13 +14,11 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
-import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import owlprocessing.OntologyOperations;
 
@@ -29,6 +26,7 @@ import owlprocessing.OntologyOperations;
  * Reads instance data from CSV and adds these data as individuals in the Manusquare Industrial OWL ontology.
  * A supplier resource (model) is represented as a process chain (PC_x) with the following statements:
  * PC_x hasSupplier [supplier]
+ * * [supplier] hasId [supplier id] 
  * * [supplier] hasName [supplier name]
  * * [supplier] hasNation [nationality]
  * * [supplier] hasCity [city]
@@ -36,54 +34,48 @@ import owlprocessing.OntologyOperations;
  * PC_x hasProcess [process]
  * PC_x hasMachine [machine] NOTE: Added OP _hasMachine until we know how to link machine with process chain
  * PC_x hasCertification [certification] 1..n NOTE: Added OP _hasCertification until we know how to link certification(s) with process chain (should probably be linked directly to supplier)
- * PC_x hasQuantity [capacity]
- * PC_x hasPeriod [period]
- * * [period] hasFrom [from date]
- * * [period] hasTo [to date]
  * @author audunvennesland
  *
  */
 public class CSV2OWL {
 	
 	String processChain;
+	String supplierId;
 	String supplierName;
 	String supplierNationality;
 	String supplierCity;
-	int rfqResponseTime;
 	Set<String> certification;
 	int capacity;
 	String material;
 	String process;
 	String machine;
-	String availableFrom;
-	String availableTo;
 	String comments;
 
 
-	public CSV2OWL(String processChain, String supplierName, String supplierNationality, String supplierCity, 
+	public CSV2OWL(String processChain, String supplierId, String supplierName, String supplierNationality, String supplierCity, 
 			int rfqResponseTime, Set<String> certification, int capacity, String material, String process, String machine, String availableFrom,
 			String availableTo) {
 		super();
 		this.processChain = processChain;
+		this.supplierId = supplierId;
 		this.supplierName = supplierName;
 		this.supplierNationality = supplierNationality;
 		this.supplierCity = supplierCity;
-		this.rfqResponseTime = rfqResponseTime;
 		this.certification = certification;
 		this.capacity = capacity;
 		this.material = material;
 		this.process = process;
 		this.machine = machine;
-		this.availableFrom = availableFrom;
-		this.availableTo = availableTo;
 	}
+	
+	public CSV2OWL() {}
 
 
 	public static void main(String[] args) throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
 
 		CSV2OWL data;
 
-		BufferedReader br = new BufferedReader(new FileReader("./files/OWL_ResourceRecords.csv"));
+		BufferedReader br = new BufferedReader(new FileReader("./files/TESTDATA/OWL_ResourceRecords.csv"));
 
 		String line = br.readLine();
 
@@ -96,12 +88,10 @@ public class CSV2OWL {
 
 			data = new CSV2OWL();
 			data.setProcessChain(params[0]);
-			data.setSupplierName(params[2]);
+			data.setSupplierId(params[1]);
+			data.setSupplierName("Dummy_" + params[2]);
 			data.setSupplierNationality(params[4]);
 			data.setSupplierCity(params[3]);
-
-			data.setRfqResponseTime(Integer.parseInt(params[5]));
-			data.setCapacity(Integer.parseInt(params[6]));
 			
 			//get certifications from csv
 			Set<String> certifications = new HashSet<String>();
@@ -120,8 +110,6 @@ public class CSV2OWL {
 			data.setMaterial(params[8]);
 			data.setProcess(params[9]);
 			data.setMachine(params[10]);
-			data.setAvailableFrom(params[11]);
-			data.setAvailableTo(params[12]);
 			
 			dataset.add(data);
 			line = br.readLine();
@@ -132,32 +120,31 @@ public class CSV2OWL {
 
 
 		//import manusquare ontology
-		File ontoFile = new File("./files/manusquare-industrial.owl");
+		File ontoFile = new File("./files/ONTOLOGIES/manusquare-industrial.owl");
 		
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		//point to a local folder containing local copies of ontologies to sort out the imports
-		AutoIRIMapper mapper=new AutoIRIMapper(new File("./files"), true);
+		AutoIRIMapper mapper=new AutoIRIMapper(new File("./files/ONTOLOGIES"), true);
 		manager.addIRIMapper(mapper);
 		
 		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontoFile);
 		System.out.println("The ontology contains " + onto.getClassesInSignature().size() + " classes");
 		
-		OWLDataFactory df = manager.getOWLDataFactory();
+//		OWLDataFactory df = manager.getOWLDataFactory();
 		OWLClass processChainClass = getClass("ProcessChain", onto);
 		OWLClass supplierClass = getClass("Supplier", onto);
-		OWLClass periodClass = getClass("Period", onto);
-		OWLClass materialTypeClass = getClass("MaterialType", onto);
-		OWLClass processTypeClass = getClass("ProcessType", onto);
-		OWLClass machineTypeClass = getClass("MachineType", onto);
+		
+		OWLDataFactory df = manager.getOWLDataFactory();
+		OWLClass materialTypeClass = null;
+		OWLClass processTypeClass = null;
+		OWLClass machineTypeClass = null;
 		
 		OWLIndividual processChainInd = null;
 		OWLIndividual supplierInd = null;
 		OWLIndividual materialInd = null;
 		OWLIndividual processInd = null;
 		OWLIndividual machineInd = null;
-		OWLIndividual periodInd = null;
-		OWLIndividual certificationInd = null;
-		
+		OWLIndividual certificationInd = null;	
 		
 		OWLAxiom classAssertionAxiom = null; 
 		OWLAxiom OPAssertionAxiom = null; 
@@ -175,20 +162,17 @@ public class CSV2OWL {
 			processChainInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getProcessChain()));
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(processChainClass, processChainInd);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);		
-			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasQuantity", onto), processChainInd, df.getOWLLiteral(td.getCapacity()));
-			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);	
 			manager.applyChange(addAxiomChange);
-			
-			//adding process
-			processInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getProcess().replaceAll(",", "_").replaceAll(" ", "_")));
-			classAssertionAxiom = df.getOWLClassAssertionAxiom(processTypeClass, processInd);			
-			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
-			
+
 			//adding supplier data
 			supplierInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getSupplierName().replaceAll(",", "_").replaceAll(" ", "_")));
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(supplierClass, supplierInd);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
+			manager.applyChange(addAxiomChange);
+			
+			//add hasId DP
+			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasId", onto), supplierInd, df.getOWLLiteral(td.getSupplierId().replaceAll(",", "_")));
+			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
 			manager.applyChange(addAxiomChange);
 			
 			//add hasName DP
@@ -206,35 +190,26 @@ public class CSV2OWL {
 			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
 			manager.applyChange(addAxiomChange);
 			
-			//add capacity DP - DO NOT ADD AT SUPPLIER INSTANCE, BUT PROCESS CHAIN INSTANCE
-			//DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasQuantity", onto), supplierInd, df.getOWLLiteral(td.getCapacity()));
-			//addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-			//manager.applyChange(addAxiomChange);
-			
-			//adding period data
-			periodInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + "PERIOD_" + iterator));
-			classAssertionAxiom = df.getOWLClassAssertionAxiom(periodClass, periodInd);			
+			//adding process
+			processInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getProcess().replaceAll(",", "_").replaceAll(" ", "_")));
+			System.out.println("Getting process type class: " + td.getProcess().substring(td.getProcess().indexOf("_")+1, td.getProcess().length()));
+			processTypeClass = getClass(td.getProcess().substring(td.getProcess().indexOf("_")+1, td.getProcess().length()), onto);
+			classAssertionAxiom = df.getOWLClassAssertionAxiom(processTypeClass, processInd);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
-			
-			//add hasFrom date
-			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasFrom", onto), periodInd, df.getOWLTypedLiteral(convertToDateTime(td.getAvailableFrom()), OWL2Datatype.XSD_DATE_TIME));
-			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
-			
-			//add hasTo date
-			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasTo", onto), periodInd, df.getOWLTypedLiteral(convertToDateTime(td.getAvailableTo()), OWL2Datatype.XSD_DATE_TIME));
-			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
 			manager.applyChange(addAxiomChange);
 			
 			//add material
 			materialInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getMaterial().replaceAll(",", "_").replaceAll(" ", "_")));
+			System.out.println("Getting material type class: " + td.getMaterial().substring(td.getMaterial().indexOf("_")+1, td.getMaterial().length()));
+			materialTypeClass = getClass(td.getMaterial().substring(td.getMaterial().indexOf("_")+1, td.getMaterial().length()), onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(materialTypeClass, materialInd);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
 			manager.applyChange(addAxiomChange);
 			
 			//add machine
 			machineInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getMachine().replaceAll(",", "_").replaceAll(" ", "_")));
+			System.out.println("Getting machine type class: " + td.getMachine().substring(td.getMachine().indexOf("_")+1, td.getMachine().length()));
+			machineTypeClass = getClass(td.getMachine().substring(td.getMachine().indexOf("_")+1, td.getMachine().length()), onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(machineTypeClass, machineInd);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
 			manager.applyChange(addAxiomChange);
@@ -266,7 +241,7 @@ public class CSV2OWL {
 			manager.applyChange(addAxiomChange);
 			
 			//OP hasMachine from processChainInd to machineInd
-			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("_hasMachine", onto), processChainInd, machineInd);
+			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasResource", onto), processChainInd, machineInd);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
 			manager.applyChange(addAxiomChange);
 			
@@ -275,21 +250,16 @@ public class CSV2OWL {
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
 			manager.applyChange(addAxiomChange);
 			
-			//OP hasPeriod from processChainInd to periodInd
-			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasPeriod", onto), processChainInd, periodInd);
-			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
-			
 			//OP hasInput from processChainInd to materialInd
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasInput", onto), processChainInd, materialInd);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
 			manager.applyChange(addAxiomChange);
-			
+						
 			//OP _hasCertification from processChainInd to certificationInd
 			//NOTE: _hasCertification is added as OP in the ontology since we couldn´t find another way of associating certifications...
 			//NOTE 2: Currently this OP is ProcessChain --> Certification, but it should probably have Stakeholder as domain class...
 			for (OWLIndividual ind : certificationInds) {
-				OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("_hasCertification", onto), processChainInd, ind);
+				OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasCertification", onto), supplierInd, ind);
 				addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
 				manager.applyChange(addAxiomChange);
 			}
@@ -302,11 +272,6 @@ public class CSV2OWL {
 		
 
 	
-
-	public CSV2OWL() {
-		// TODO Auto-generated constructor stub
-	}
-	
 	public String getProcessChain() {
 		return processChain;
 	}
@@ -314,6 +279,17 @@ public class CSV2OWL {
 	public void setProcessChain(String processChain) {
 		this.processChain = processChain;
 	}
+	
+
+	public String getSupplierId() {
+		return supplierId;
+	}
+
+
+	public void setSupplierId(String supplierId) {
+		this.supplierId = supplierId;
+	}
+
 
 	public String getSupplierName() {
 		return supplierName;
@@ -338,25 +314,6 @@ public class CSV2OWL {
 	public void setSupplierCity(String supplierCity) {
 		this.supplierCity = supplierCity;
 	}
-
-	public int getRfqResponseTime() {
-		return rfqResponseTime;
-	}
-
-	public void setRfqResponseTime(int rfqResponseTime) {
-		this.rfqResponseTime = rfqResponseTime;
-	}
-
-
-	public int getCapacity() {
-		return capacity;
-	}
-
-	public void setCapacity(int capacity) {
-		this.capacity = capacity;
-	}
-	
-	
 
 	public Set<String> getCertification() {
 		return certification;
@@ -383,8 +340,7 @@ public class CSV2OWL {
 	public void setProcess(String process) {
 		this.process = process;
 	}
-	
-	
+		
 
 	public String getMachine() {
 		return machine;
@@ -396,30 +352,14 @@ public class CSV2OWL {
 	}
 
 
-	public String getAvailableFrom() {
-		return availableFrom;
-	}
-
-	public void setAvailableFrom(String availableFrom) {
-		this.availableFrom = availableFrom;
-	}
-
-	public String getAvailableTo() {
-		return availableTo;
-	}
-
-	public void setAvailableTo(String availableTo) {
-		this.availableTo = availableTo;
-	}
-
 	@Override
 	public String toString() {
 		return "TestData [supplierName=" + supplierName + ", supplierNationality=" + supplierNationality
-				+ ", supplierCity=" + supplierCity + ", rfqResponseTime="
-				+ rfqResponseTime + ", certification="
+				+ ", supplierCity=" + supplierCity + /*", rfqResponseTime="
+				+ rfqResponseTime +*/ ", certification="
 				+ certification + ", capacity="
-				+ capacity + ", material=" + material + ", process=" + process + ", machine=" + machine +", availableFrom=" + availableFrom
-				+ ", availableTo=" + availableTo + "]";
+				+ capacity + ", material=" + material + ", process=" + process + ", machine=" + machine +", availableFrom=" + /*availableFrom
+				+ ", availableTo=" + availableTo +*/ "]";
 	}
 
 	/**
