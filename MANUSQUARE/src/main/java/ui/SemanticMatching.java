@@ -36,6 +36,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import graph.Graph;
 import query.ConsumerQuery;
+import query.QueryGenerator;
 import similarity.SimilarityMeasures;
 import similarity.SimilarityMethods;
 import supplierdata.Resource;
@@ -76,27 +77,12 @@ public class SemanticMatching {
 			logger.setLevel(Level.ERROR);
 			logger.setAdditive(false);
 		}
-
-//		String process = "WaterJetCutting";
-//		String material = "AlloySteel";
-//		String machine = "WaterJetCuttingMachine";
-//		Set<String> certifications = new HashSet<String>();
-//		certifications.add("ISO9000");
-//		certifications.add("ISO9004");
 		
-		String process = "Burring";
-		String material = "WhiteIron";
-		String machine = "BendingMachine";
-		Set<String> certifications = new HashSet<String>();
-		certifications.add("ISO9000");
-		certifications.add("LEED");
-
-		//construct a ConsumerQuery object to hold the query parameters
-		ConsumerQuery query = new ConsumerQuery();
-		query.setRequiredProcess(process);
-		query.setRequiredMaterial(material);
-		query.setRequiredMachine(machine);
-		query.setRequiredCertificates(certifications);
+		//automatically generates a query
+		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontologyFile);
+		
+		ConsumerQuery query = QueryGenerator.generateSimpleQuery(onto);
 
 		performSemanticMatching(query, 15);
 
@@ -248,6 +234,8 @@ public class SemanticMatching {
 		try(RepositoryConnection conn = repository.getConnection()) {
 
 			TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, strQuery);		
+			
+			//do not include inferred statements from the KB
 			tupleQuery.setIncludeInferred(false);
 
 			try (TupleQueryResult result = tupleQuery.evaluate()) {
@@ -256,6 +244,7 @@ public class SemanticMatching {
 
 					BindingSet solution = result.next();
 					
+					//omit the NamedIndividual types from the query result
 					if (!solution.getValue("processType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
 							&& !solution.getValue("materialType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
 							&& !solution.getValue("machineType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")) {

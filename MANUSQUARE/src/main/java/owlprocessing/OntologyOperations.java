@@ -197,7 +197,7 @@ public class OntologyOperations {
 	}
 
 	/**
-	 * Helper method that retrieves a set of subclasses (fragments or proper name without URI) for an OWLClass (provided as parameter along with the OWLOntology which is needed for allowing the reasoner to get all subclasses for an OWLClass)
+	 * Helper method that retrieves the DIRECT set of subclasses (fragments or proper name without URI) for an OWLClass (provided as parameter along with the OWLOntology which is needed for allowing the reasoner to get all subclasses for an OWLClass)
 	 * @param onto the input OWLOntology
 	 * @param inputClass the OWLClass for which subclasses will be retrieved
 	 * @return Set<String> of subclasses for an OWLClass
@@ -220,29 +220,29 @@ public class OntologyOperations {
 
 	}
 	
-//	/**
-//	 * Helper method that retrieves a set of subclasses (fragments or proper name without URI) for an OWLClass (provided as parameter along with the OWLOntology which is needed for allowing the reasoner to get all subclasses for an OWLClass)
-//	 * @param onto the input OWLOntology
-//	 * @param inputClass the OWLClass for which subclasses will be retrieved
-//	 * @return Set<String> of subclasses for an OWLClass
-//	 */
-//	public static Set<String> getAllEntitySubclassesFragments (OWLOntology onto, OWLClass inputClass) {
-//		OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
-//		OWLReasoner reasoner = reasonerFactory.createReasoner(onto);
-//
-//		NodeSet<OWLClass> subclasses = reasoner.getSubClasses(inputClass, false);
-//
-//		Set<String> subclsSet = new HashSet<String>();
-//
-//		for (OWLClass cls : subclasses.getFlattened()) {
-//			if (!cls.isOWLNothing()) {
-//				subclsSet.add(cls.getIRI().getFragment().toString());
-//			}
-//		}
-//
-//		return subclsSet;
-//
-//	}
+	/**
+	 * Helper method that retrieves ALL subclasses (fragments or proper name without URI) for an OWLClass (provided as parameter along with the OWLOntology which is needed for allowing the reasoner to get all subclasses for an OWLClass)
+	 * @param onto the input OWLOntology
+	 * @param inputClass the OWLClass for which subclasses will be retrieved
+	 * @return Set<String> of subclasses for an OWLClass
+	 */
+	public static Set<String> getAllEntitySubclassesFragments (OWLOntology onto, OWLClass inputClass) {
+		OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+		OWLReasoner reasoner = reasonerFactory.createReasoner(onto);
+
+		NodeSet<OWLClass> subclasses = reasoner.getSubClasses(inputClass, false);
+
+		Set<String> subclsSet = new HashSet<String>();
+
+		for (OWLClass cls : subclasses.getFlattened()) {
+			if (!cls.isOWLNothing()) {
+				subclsSet.add(cls.getIRI().getFragment().toString());
+			}
+		}
+
+		return subclsSet;
+
+	}
 
 	/**
 	 * Retrieves the superclasses for each entity in an ontology and returns a Map where the entity name is key and the set of associated superclasses is value

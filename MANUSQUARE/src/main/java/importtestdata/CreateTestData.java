@@ -284,7 +284,7 @@ public class CreateTestData {
 
 		//get all OWL classes representing machines being subclasses to className
 		OWLClass c = OntologyOperations.getClass(className, onto);
-		Set<String> subClasses = OntologyOperations.getEntitySubclassesFragments(onto, c);
+		Set<String> subClasses = OntologyOperations.getAllEntitySubclassesFragments(onto, c);
 
 		List<String> machines = new LinkedList<String>();
 
@@ -307,7 +307,7 @@ public class CreateTestData {
 
 		//get all OWL classes representing processes being subclasses to className
 		OWLClass c = OntologyOperations.getClass(className, onto);
-		Set<String> subClasses = OntologyOperations.getEntitySubclassesFragments(onto, c);
+		Set<String> subClasses = OntologyOperations.getAllEntitySubclassesFragments(onto, c);
 
 		List<String> processes = new LinkedList<String>();
 
@@ -330,7 +330,7 @@ public class CreateTestData {
 
 		//get all OWL classes representing materials being subclasses to className
 		OWLClass c = OntologyOperations.getClass(className, onto);
-		Set<String> subClasses = OntologyOperations.getEntitySubclassesFragments(onto, c);
+		Set<String> subClasses = OntologyOperations.getAllEntitySubclassesFragments(onto, c);
 
 		List<String> materials = new LinkedList<String>();
 
@@ -350,6 +350,7 @@ public class CreateTestData {
 	   Jul 2, 2019
 	 */
 	public static Map<String, String> createProcessMachineCombination (List<String> processes, List<String> machines) {
+		
 
 		Map<String, String> processAndMachinesMap = new HashMap<String, String>();
 
@@ -452,7 +453,6 @@ public class CreateTestData {
 
 					}
 				}
-
 
 			}
 		}

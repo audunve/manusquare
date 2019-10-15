@@ -24,7 +24,7 @@
         <dc:title>Manusquare Core Ontology</dc:title>
         <rdfs:comment>ManuSquare Core Ontology covers five areas of the manufacturing: (1) Factory Model through the classes needed to provide a description of a company, manufacturing processes and involved resources,(2) Stakeholder Model with the concepts of Stakeholder (Supplier, Investor, Innovation Facilitators, Customers),(3) Innovation Ideas Model for capturing different innovate ideas in manufacturing domain, linking them with their stakeholders, (4) RFQ Model with classes required to define the concept of Request for Quotation, and (5) Sustainability Assessment Model with  classes needed to perform evaluation of the processes from a sustainability point of view.</rdfs:comment>
         <rdfs:comment>version 0.9.20190731</rdfs:comment>
-        <foaf:mbox>manusquare-project@innova-eu.net</foaf:mbox>
+        <foaf:mbox xml:lang="innova-eu.net">manusquare-project</foaf:mbox>
     </owl:Ontology>
     
 

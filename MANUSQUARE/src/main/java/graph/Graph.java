@@ -75,13 +75,16 @@ public class Graph {
      * @throws OWLOntologyCreationException May 14, 2019
      */
     public static void createOntologyGraph(File sourceOntology) throws OWLOntologyCreationException {
-        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+    	
+    		long startTime = System.currentTimeMillis();
+        
+    		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         OWLOntology sourceOnto = manager.loadOntologyFromOntologyDocument(sourceOntology);
 
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         String dbName = String.valueOf(timestamp.getTime());
         File dbFile = new File("/Users/audunvennesland/Documents/phd/development/Neo4J_new/" + dbName);
-        System.err.println("Creating a new NEO4J database...");
+        //System.err.println("Creating a new NEO4J database...");
         GraphDatabaseService db = new GraphDatabaseFactory().newEmbeddedDatabase(dbFile);
 
         String ontologyParameter = StringUtilities.stripPath(sourceOntology.toString());
@@ -89,11 +92,14 @@ public class Graph {
         //create new graphs
         Label labelO1 = Label.label(ontologyParameter);
 
-        System.err.println("Creating ontology graph of ontology " + ontologyParameter);
-
         //TODO: the below code is strange, no need for two createOntologyGraph methods in Graph - fix it!
         Graph creator = new Graph(db);
         creator.createOntologyGraph(sourceOnto, labelO1);
+        
+        long stopTime = System.currentTimeMillis();
+        long elapsedTime = stopTime - startTime;
+        
+        System.err.println("Created a Neo4J graph of ontology " + ontologyParameter + " in " + elapsedTime + " ms.");
 
     }
 

@@ -28,11 +28,12 @@ import utilities.StringUtilities;
  */
 public class QueryGenerator {
 
+	//test method
 	public static void main(String[] args) throws OWLOntologyCreationException {
 
 
 		//import and parse the owl file (throws Exception)			
-		File ontologyFile = new File ("./files/manusquare-consumer.owl");
+		File ontologyFile = new File ("./files/ONTOLOGIES/manusquare-consumer.owl");
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontologyFile);
 
@@ -44,18 +45,68 @@ public class QueryGenerator {
 		//dummy consumer query containing a combination of two sub-queries
 		Set<ConsumerQuery> querySet = new HashSet<ConsumerQuery>();
 
-		ConsumerQuery query1 = generateRandomQuery(onto);
-		ConsumerQuery query2 = generateRandomQuery(onto);
+		ConsumerQuery query1 = generateSimpleQuery(onto);
+		ConsumerQuery query2 = generateSimpleQuery(onto);
 
 		querySet.add(query1);
 		querySet.add(query2);
 
 		for (ConsumerQuery q : querySet) {
 			
-			System.out.println(q.getRequiredProcess() + "; " + q.getRequiredMaterial() + "; " + q.getRequiredMachine() + "; " + CreateTestData.printCertifications(q.getRequiredCertificates()) + "; " + q.getCapacity());
+			System.out.println(q.getRequiredProcess() + "; " + q.getRequiredMaterial() + "; " + q.getRequiredMachine() + "; " + CreateTestData.printCertifications(q.getRequiredCertificates()));
 			
 		}
 
+	}
+	
+	/**
+	 * generates a "random" query consisting of process, material, machine and certificates.
+	 * @param onto the ontology from which the process, material and machine concepts are captured
+	 * @return
+	   Oct 15, 2019
+	 */
+	public static ConsumerQuery generateSimpleQuery(OWLOntology onto) {
+		
+		String machineScope = "MachineType";
+		String processScope = "SubtractionProcess";
+		String materialScope = "Ferrous";
+
+
+		List<String> certifications = new ArrayList<String>();
+		certifications.add("LEED");
+		certifications.add("AS9000");
+		certifications.add("AS9100");
+		certifications.add("ISO14000");
+		certifications.add("ISO9000");
+		certifications.add("ISO9001");
+		certifications.add("ISO9002");
+		certifications.add("ISO9003");
+		certifications.add("ISO9004");
+		certifications.add("MIL");
+		certifications.add("QS9000");
+
+		List<String> materials = CreateTestData.retrieveMaterials(materialScope, onto);
+
+		//create the correct process to machine combinations
+		List<String> machines = CreateTestData.retrieveMachines(machineScope, onto);
+		List<String> processes = CreateTestData.retrieveProcesses(processScope, onto);
+		
+		//map to hold correct process-to-machine combinations
+		Map<String, String> combos = CreateTestData.createProcessMachineCombination(processes, machines);
+
+		// Get a random entry from the process-to-machine combinations.
+		Object[] keys = combos.keySet().toArray();
+		Object key = keys[new Random().nextInt(keys.length)];
+
+
+		ConsumerQuery query = new ConsumerQuery();
+		query.setRequiredProcess((String)key);
+		query.setRequiredMaterial(StringUtilities.getRandomString1(materials));
+		query.setRequiredMachine((String)combos.get(key));
+		query.setRequiredCertificates(StringUtilities.getRandomString3(certifications));
+
+		return query;
+		
 	}
 
 
