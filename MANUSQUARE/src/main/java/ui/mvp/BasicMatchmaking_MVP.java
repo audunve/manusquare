@@ -18,6 +18,8 @@ public class BasicMatchmaking_MVP {
 
 	public static void main(String[] args) throws OWLOntologyCreationException, IOException, ParseException, JSONException {
 
+		long startTime = System.currentTimeMillis();
+		
 		logging(false);
 		
 		int numMatchingResults = 15;
@@ -26,6 +28,11 @@ public class BasicMatchmaking_MVP {
 		
 		//if weighted == true, Process facet is using a weight of 0.8 while certifications uses a weight of 0.2
 		SemanticMatching_MVP.performSemanticMatching(jsonIn, numMatchingResults, jsonOut, true);
+		
+        long stopTime = System.currentTimeMillis();
+        long elapsedTime = stopTime - startTime;
+        
+        System.out.println("Process completed in " + elapsedTime/1000 + " seconds.");
 
 	}
 

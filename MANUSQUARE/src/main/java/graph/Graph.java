@@ -99,7 +99,7 @@ public class Graph {
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;
         
-        System.err.println("Created a Neo4J graph of ontology " + ontologyParameter + " in " + elapsedTime + " ms.");
+        //System.err.println("Created a Neo4J graph of ontology " + ontologyParameter + " in " + elapsedTime + " ms.");
 
     }
 

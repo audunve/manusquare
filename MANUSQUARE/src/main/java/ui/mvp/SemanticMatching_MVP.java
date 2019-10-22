@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,9 +23,8 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
-import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Label;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -58,15 +58,19 @@ public class SemanticMatching_MVP {
 	static SimilarityMethods similarityMethod = SimilarityMethods.WU_PALMER;
 
 	//configure the GraphDB knowledge base
-	static final String GRAPHDB_SERVER = "http://localhost:7200/";
-	static final String REPOSITORY_ID = "Manusquare";
+	//	static final String GRAPHDB_SERVER = "http://localhost:7200/";
+	//	static final String REPOSITORY_ID = "Manusquare";
+
+	//configuration of the MANUSQUARE Semantic Infrastructure	
+	static final String SPARQL_ENDPOINT = "http://194.183.12.36:8181/semantic-registry/repository/manusquare?infer=true&limit=0&offset=0";
+	static final String AUTHORISATION_TOKEN = "c5ec0a8b494a30ed41d4d6fe3107990b";
 
 	static Label label;
 
 	//ontology used for computing semantic similarity, should eventually point to an URI of a persistent MANUSQUARE ontology.
 	static File ontologyFile = new File ("./files/ONTOLOGIES/manusquare-consumer.owl");
 
-	
+
 	/**
 	 * Matches a query against a set of resources offered by suppliers and returns a list of suppliers having the highest semantic similarity
 	 * @param jsonFile an input json file holding process(es) and certifications from the RFQ creation process.
@@ -82,9 +86,13 @@ public class SemanticMatching_MVP {
 		//create query (set) from input JSON file
 		Set<ConsumerQuery> consumerQueries = json.parseJSONInput.createConsumerQuery(inputJSONFile);
 
-		//System.out.println("We have " + consumerQueries.size() + " consumer queries");
+		//get process(s) from the query and use them to subset the supplier records in the SPARQL query
+		List<String> processes = new ArrayList<String>();
+		for (ConsumerQuery query : consumerQueries) {
+			processes.add(query.getRequiredProcess());
+		}
 
-		Set<SupplierResourceRecord> recordsFromKB = createSupplierResourceRecordsFromKB(GRAPHDB_SERVER, REPOSITORY_ID);
+		Set<SupplierResourceRecord> recordsFromKB = createSupplierResourceRecordsFromKB(processes);
 		Set<Supplier> suppliers = new HashSet<Supplier>();
 
 		suppliers = createSupplier(recordsFromKB);
@@ -102,7 +110,7 @@ public class SemanticMatching_MVP {
 
 		Map<Supplier, Double> supplierScores = new HashMap<Supplier, Double>();
 
-		
+
 		//TODO: Check if a more sensible approach for computing an aggregate score for each supplier makes sense. At the moment only the best matching resource offered
 		//by a supplier is used to represent a supplier's score. The rationale is that a supplier can offer a wide range of resources, some relevant and some not relevant, and
 		//the non-relevant ones should not penalize the relevant resources a supplier offers.
@@ -135,10 +143,10 @@ public class SemanticMatching_MVP {
 			finalSupplierMap.put(e.getKey().getId(), e.getValue());
 
 		}
-		
+
 		int rank = 1;
 		List<MatchingResult> scores = new LinkedList<MatchingResult>();
-		
+
 		for (Entry<String, Double> e : finalSupplierMap.entrySet()) {
 			scores.add(new MatchingResult(rank, e.getKey(), e.getValue()));
 			rank++;
@@ -147,15 +155,98 @@ public class SemanticMatching_MVP {
 		Gson gson = new GsonBuilder().create();
 
 		String json = gson.toJson(scores);
-		
+
 		System.out.println(json);
-		
+
 		FileWriter writer = new FileWriter(outputJSONFile);
 		writer.write(json);
 		writer.close();
 
 	}
 
+	/**
+	 * creates supplier resource records from knowledge base
+	 * @return set of supplier resource records 
+	 * @throws IOException
+	   Oct 12, 2019
+	 */
+	private static Set<SupplierResourceRecord> createSupplierResourceRecordsFromKB(List<String> processes) throws IOException {
+
+		Set<SupplierResourceRecord> resources = new HashSet<SupplierResourceRecord>();
+
+		SupplierResourceRecord resource;
+
+		Map<String, String> headers = new HashMap<String, String>();
+		headers.put("Authorization", AUTHORISATION_TOKEN);
+		headers.put("accept", "application/JSON");
+
+		//connect to GraphDB
+		//Repository repository = new HTTPRepository(kb, repositoryID);
+
+		SPARQLRepository repository = new SPARQLRepository(SPARQL_ENDPOINT );
+
+		repository.initialize();
+		repository.setAdditionalHttpHeaders(headers);
+
+		String strQuery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n";
+		strQuery += "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n";
+		strQuery += "PREFIX core: <http://manusquare.project.eu/core-manusquare#> \n";
+		strQuery += "PREFIX ind: <http://manusquare.project.eu/industrial-manusquare#> \n";
+		strQuery += "PREFIX owl: <http://www.w3.org/2002/07/owl#> \n";
+		strQuery += "SELECT distinct ?processChain ?supplierId ?processType ?certificationType \n";
+		strQuery += "WHERE { \n";
+
+		//only retrieve the subsumed process classes of processes included in the consumer query
+		strQuery += querySubsumedClasses(processes);
+
+		strQuery += "?subprocess rdf:type ?processType .\n";
+		strQuery += "?processChain core:hasProcess ?subprocess .\n";
+		strQuery += "?processChain core:hasSupplier ?supplier .\n";	
+		strQuery += "?supplier core:hasId ?supplierId .\n";
+		strQuery += "?supplier core:hasCertification ?certification . \n";
+		strQuery += "?certification rdf:type ?certificationType . \n";
+		strQuery += "}";
+
+		//open connection to GraphDB and run SPARQL query
+		try(RepositoryConnection conn = repository.getConnection()) {
+
+			TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, strQuery);		
+
+			//do not include inferred statements from the KB
+			tupleQuery.setIncludeInferred(false);
+
+			try (TupleQueryResult result = tupleQuery.evaluate()) {
+
+				while (result.hasNext()) {
+
+					BindingSet solution = result.next();
+
+					//omit the NamedIndividual types from the query result
+					if (!solution.getValue("processType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")) {
+
+						resource = new SupplierResourceRecord();
+						resource.setId(solution.getValue("processChain").stringValue());
+						resource.setSupplierId(solution.getValue("supplierId").stringValue());
+						resource.setUsedProcess(solution.getValue("processType").stringValue().replaceAll("http://manusquare.project.eu/industrial-manusquare#", ""));
+						resource.setPosessedCertificate(solution.getValue("certificationType").stringValue().replaceAll("http://manusquare.project.eu/industrial-manusquare#", ""));
+
+						resources.add(resource);
+					}
+				}
+
+			}	
+
+		}
+
+		//close connection to KB repository
+		repository.shutDown();
+
+		//ensure no duplicate records
+		Set<SupplierResourceRecord> cleanRecords = consolidateSupplierRecords(resources);
+
+		return cleanRecords;
+
+	}
 
 	/**
 	 * creates a set of suppliers (a supplier object contains both supplier data and a set of resources offered by this particular supplier)
@@ -194,82 +285,30 @@ public class SemanticMatching_MVP {
 		return suppliers;
 	}
 
-
 	/**
-	 * creates supplier resource records from knowledge base
-	 * @param kb path to the knowledge base
-	 * @param repositoryID identifies the specific repository of the knowledge base
+	 * Creates a UNION query (i.e. an OR) from processes included in a consumer query
+	 * @param processes
 	 * @return
-	 * @throws IOException
-	   Oct 12, 2019
+	   Oct 22, 2019
 	 */
-	private static Set<SupplierResourceRecord> createSupplierResourceRecordsFromKB(String kb, String repositoryID) throws IOException {
+	private static String querySubsumedClasses (List<String> processes) {
 
-		Set<SupplierResourceRecord> resources = new HashSet<SupplierResourceRecord>();
+		List<String> query = new ArrayList<String>();
 
-		SupplierResourceRecord resource;
+		if (processes.size() > 1) {
 
-		//connect to GraphDB
-		Repository repository = new HTTPRepository(kb, repositoryID);
-		repository.initialize();
+			for (String s : processes) {
 
-		//retrieve relevant supplier resources using a SPARQL query, note that for process, material and machine the rdf:types are retrieved, not the 
-		//individuals.
-		String strQuery = "PREFIX core:<http://manusquare.project.eu/core-manusquare#> \n";
-		strQuery += "PREFIX ind:<http://manusquare.project.eu/industrial-manusquare#> \n";
-		strQuery += "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n";
-		strQuery += "SELECT distinct ?processChain ?supplierId ?certificationType ?processType \n";
-		strQuery += "WHERE { \n";
-		strQuery += "?processChain core:hasProcess ?process .\n";
-		strQuery += "?process rdf:type ?processType .\n";		
-		strQuery += "?processChain core:hasSupplier ?supplier .\n";	
-		strQuery += "?supplier core:hasId ?supplierId .\n";
-		strQuery += "?supplier core:hasCertification ?certification . \n";
-		strQuery += "?certification rdf:type ?certificationType . \n";
-		strQuery += "}";
+				query.add("{ ?processType rdfs:subClassOf ind:" + s + " . }");
+			}
 
-		//open connection to GraphDB and run SPARQL query
-		try(RepositoryConnection conn = repository.getConnection()) {
+			return String.join(" UNION ", query);
 
-			TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, strQuery);		
+		} else {
 
-			//do not include inferred statements from the KB
-			tupleQuery.setIncludeInferred(false);
-
-			try (TupleQueryResult result = tupleQuery.evaluate()) {
-
-				while (result.hasNext()) {
-
-					BindingSet solution = result.next();
-
-					//omit the NamedIndividual types from the query result
-					if (!solution.getValue("processType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")) {
-
-						resource = new SupplierResourceRecord();
-						resource.setId(solution.getValue("processChain").stringValue());
-						resource.setSupplierId(solution.getValue("supplierId").stringValue());
-						resource.setUsedProcess(solution.getValue("processType").stringValue().replaceAll("http://manusquare.project.eu/industrial-manusquare#", ""));
-						resource.setPosessedCertificate(solution.getValue("certificationType").stringValue().replaceAll("http://manusquare.project.eu/industrial-manusquare#", ""));
-
-						resources.add(resource);
-					}
-				}
-
-			}	
-
+			return "?processType rdfs:subClassOf ind:" + processes.get(0) + " .";
 		}
 
-		//close connection to GraphDB
-		repository.shutDown();
-		
-		//System.out.println("There are " + resources.size() + " raw resource records");
-
-		//ensure no duplicate records
-		Set<SupplierResourceRecord> cleanRecords = consolidateSupplierRecords(resources);
-		
-		//System.out.println("There are " + cleanRecords.size() + " clean supplier resource records");
-
-		return cleanRecords;
 
 	}
 

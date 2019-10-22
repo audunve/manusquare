@@ -51,18 +51,22 @@ public class AccessSemanticInfrastructure {
 
 		repo.initialize();
 		repo.setAdditionalHttpHeaders(headers);
-
+		
 		String strQuery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \n";
 		strQuery += "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \n";
 		strQuery += "PREFIX core: <http://manusquare.project.eu/core-manusquare#> \n";
 		strQuery += "PREFIX ind: <http://manusquare.project.eu/industrial-manusquare#> \n";
 		strQuery += "PREFIX owl: <http://www.w3.org/2002/07/owl#> \n";
-		strQuery += "SELECT distinct ?supplier ?supplierName \n";
+		strQuery += "SELECT distinct ?processChain ?supplierId ?processType ?certificationType \n";
 		strQuery += "WHERE { \n";
+		strQuery += "?processType rdfs:subClassOf ind:UltrasonicMachining .\n";
+		strQuery += "?subprocess rdf:type ?processType .\n";
+		strQuery += "?processChain core:hasProcess ?subprocess .\n";
 		strQuery += "?processChain core:hasSupplier ?supplier .\n";	
-		strQuery += "?supplier core:hasName ?supplierName \n";
+		strQuery += "?supplier core:hasId ?supplierId .\n";
+		strQuery += "?supplier core:hasCertification ?certification . \n";
+		strQuery += "?certification rdf:type ?certificationType . \n";
 		strQuery += "}";
-
 
 		//open connection to GraphDB and run SPARQL query
 		try(RepositoryConnection conn = repo.getConnection()) {
@@ -73,13 +77,15 @@ public class AccessSemanticInfrastructure {
 			tupleQuery.setIncludeInferred(true);
 
 			try (TupleQueryResult result = tupleQuery.evaluate()) {
+				
+				System.out.println("There are " + result.getBindingNames().size() + " results");
+				System.out.println(result.getBindingNames());
 
 				while (result.hasNext()) {
 
 					BindingSet solution = result.next();
 					
-					System.out.println("Supplier individual is " + solution.getValue("supplier").stringValue());
-					System.out.println("Supplier name is " + solution.getValue("supplierName").stringValue());
+					System.out.println("Process chain: " + solution.getValue("processChain").stringValue() + ", " + solution.getValue("supplierId").stringValue() + ", " + solution.getValue("processType").stringValue() + ", " + solution.getValue("certificationType").stringValue());
 
 				}
 			}	
