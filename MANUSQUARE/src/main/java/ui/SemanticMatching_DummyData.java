@@ -51,7 +51,7 @@ import utilities.StringUtilities;
  * @author audunvennesland
  *
  */
-public class SemanticMatching {
+public class SemanticMatching_DummyData {
 
 
 	static SimilarityMethods similarityMethod = SimilarityMethods.WU_PALMER;
@@ -122,7 +122,7 @@ public class SemanticMatching {
 			LinkedList<Double> localSupplierScores = new LinkedList<Double>();
 
 			for (Resource resource : supplier.getResources()) {
-				semanticSim = SimilarityMeasures.computeSemanticSimilarity(query, resource, label, onto, similarityMethod);
+				semanticSim = SimilarityMeasures.computeSemanticSimilarity(query, resource, label, onto, similarityMethod, false);
 				localSupplierScores.add(semanticSim);
 			}
 			//get the highest score for the resources offered by supplier n

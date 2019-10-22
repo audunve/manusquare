@@ -40,9 +40,17 @@ public class CreateTestData {
 		String machineScope = "MachineType";
 		String processScope = "SubtractionProcess";
 		String materialScope = "Ferrous";
+		String productsScope = "MetalProducts";
+		String humanCapabilitiyScope = "EngineeringService";
 		
-		createSETData (numSupplierResourceRecordsToPrint, ontologyFile, inputCSV, SETOutputCSV, materialScope, processScope, machineScope);
-		createOWLData (numSupplierResourceRecordsToPrint, ontologyFile, inputCSV, OWLOutputCSV, materialScope, processScope, machineScope);
+		//createSETData (numSupplierResourceRecordsToPrint, ontologyFile, inputCSV, SETOutputCSV, materialScope, processScope, machineScope);
+		//createOWLData (numSupplierResourceRecordsToPrint, ontologyFile, inputCSV, OWLOutputCSV, materialScope, processScope, machineScope);
+		
+		List<String> test =  retrieveProcesses(processScope, onto);
+		
+		for (String s : test) {
+			System.out.println(s);
+		}
 
 
 	}
@@ -341,6 +349,53 @@ public class CreateTestData {
 		return materials;
 
 	}
+	
+	/**
+	 * Retrieves output (products) from the ontology starting from className as top node
+	 * @param className
+	 * @param onto
+	 * @return
+	   Jul 2, 2019
+	 */
+	public static List<String> retrieveProducts(String className, OWLOntology onto) {
+
+		//get all OWL classes representing machines being subclasses to className
+		OWLClass c = OntologyOperations.getClass(className, onto);
+		Set<String> subClasses = OntologyOperations.getAllEntitySubclassesFragments(onto, c);
+
+		List<String> products = new LinkedList<String>();
+
+		for (String s : subClasses) {
+			products.add(s);
+		}
+
+		return products;
+
+	}
+	
+	/**
+	 * Retrieves human capabilities (Engineering Services) from the ontology starting from className as top node
+	 * @param className
+	 * @param onto
+	 * @return
+	   Jul 2, 2019
+	 */
+	public static List<String> retrieveHumanCapabilities(String className, OWLOntology onto) {
+
+		//get all OWL classes representing machines being subclasses to className
+		OWLClass c = OntologyOperations.getClass(className, onto);
+		Set<String> subClasses = OntologyOperations.getAllEntitySubclassesFragments(onto, c);
+
+		List<String> products = new LinkedList<String>();
+
+		for (String s : subClasses) {
+			products.add(s);
+		}
+
+		return products;
+
+	}
+	
 
 	/**
 	 * Creates a combination of process and machines that is relevant (well...)

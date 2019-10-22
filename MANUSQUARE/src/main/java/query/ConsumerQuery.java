@@ -34,6 +34,13 @@ public class ConsumerQuery {
 		this.requiredAvailableToDate = requiredAvailableToDate;
 	}
 	
+	//basic constructor used for MVP-1
+	public ConsumerQuery(String requiredProcess, Set<String> requiredCertificates) {
+		super();
+		this.requiredProcess = requiredProcess;
+		this.requiredCertificates = requiredCertificates;
+	}
+	
 	public ConsumerQuery() {}
 
 	public String getCity() {

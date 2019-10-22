@@ -12,6 +12,13 @@ public class Resource {
 	Set<String> certifications;
 	String availableFrom;
 	String availableTo;
+	
+	//very basic for MVP
+	public Resource(String process, Set<String> certifications) {
+		super();
+		this.process = process;
+		this.certifications = certifications;
+	}
 
 	
 	public Resource(Supplier supplier, int capacity, String material, String process, String machine, /*Set<String> certifications, */String availableFrom,
