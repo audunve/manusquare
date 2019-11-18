@@ -11,15 +11,15 @@
 	"projectAttributes": [
 		{
 			"attributeId": "E",
-			"processName": "Drilling",
-			"attributeKey": "material",
-			"attributeValue": "CarbonSteel"
+			"processName": "Milling",
+			"attributeKey": "workArea.X(mm)",
+			"attributeValue": "3048"
 		},
 		{
-			"attributeId": "E",
-			"processName": "HoleMaking",
-			"attributeKey": "material",
-			"attributeValue": "Steel"
+			"attributeId": "F",
+			"processName": "Milling",
+			"attributeKey": "tolerance(+- mm)",
+			"attributeValue": "2"
 		}
 	],
 	"supplierAttributes": [

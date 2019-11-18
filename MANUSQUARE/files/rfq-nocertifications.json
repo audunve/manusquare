@@ -11,32 +11,15 @@
 	"projectAttributes": [
 		{
 			"attributeId": "E",
-			"processName": "Drilling",
+			"processName": "Milling",
 			"attributeKey": "material",
 			"attributeValue": "CarbonSteel"
 		},
 		{
 			"attributeId": "E",
-			"processName": "HoleMaking",
+			"processName": "Milling",
 			"attributeKey": "material",
 			"attributeValue": "Steel"
-		}
-	],
-	"supplierAttributes": [
-		{
-			"id": "supplier-attribute-430396576",
-			"attributeKey": "certification",
-			"attributeValue": "ISO9003"
-		},
-		{
-			"id": "supplier-attribute-430396577",
-			"attributeKey": "certification",
-			"attributeValue": "ISO9004"
-		},
-		{
-			"id": "supplier-attribute-430396577",
-			"attributeKey": "certification",
-			"attributeValue": "AS9000"
 		}
 	]
 }

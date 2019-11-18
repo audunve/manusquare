@@ -1,4 +1,4 @@
-{
+	{
 	"nda": "no",
 	"projectName": "Project1",
 	"projectDescription": "ProjectDescription",
@@ -7,22 +7,9 @@
 	"servicePolicy": "true",
 	"projectId": "project-1254161155",
 	"id": "project-1254161155",
-	"projectType": "Capacity Sharing",
-	"projectAttributes": [
-		{
-			"attributeId": "E",
-			"processName": "Drilling",
-			"attributeKey": "material",
-			"attributeValue": "CarbonSteel"
-		},
-		{
-			"attributeId": "E",
-			"processName": "HoleMaking",
-			"attributeKey": "material",
-			"attributeValue": "Steel"
-		}
-	],
-	"supplierAttributes": [
+	"projectType": "Drilling",
+	"supplierAttributes": 
+	[
 		{
 			"id": "supplier-attribute-430396576",
 			"attributeKey": "certification",

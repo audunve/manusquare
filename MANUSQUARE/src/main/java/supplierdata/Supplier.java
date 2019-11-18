@@ -1,6 +1,11 @@
 package supplierdata;
 
-import java.util.Set;
+import java.util.List;
+
+import edm.Certification;
+import edm.Material;
+import edm.Process;
+
 
 public class Supplier {
 	
@@ -8,45 +13,27 @@ public class Supplier {
 	String supplierName;
 	String supplierNationality;
 	String supplierCity;
-	int rfqResponseTime;
-	String cadType;
-	Set<String> certifications;
-	Set<Resource> resources;
+	List<Certification> certifications;
+	List<Process> processes;
+	//List<Material> materials;
 	
-	public Supplier(String id, String supplierName, String supplierNationality, String supplierCity,int rfqResponseTime,
-			String cadType, Set<String> certifications,Set<Resource> resources) {
-		super();
+	public Supplier (String id, List<Process> processes, List<Certification> certifications) {
 		this.id = id;
-		this.supplierName = supplierName;
-		this.supplierNationality = supplierNationality;
-		this.supplierCity = supplierCity;
-		this.rfqResponseTime = rfqResponseTime;
-		this.cadType = cadType;
-		this.certifications = certifications;
-		this.resources = resources;
-	}
-	
-	//used for creation of test data
-	public Supplier(String id, String supplierName, String supplierNationality, String supplierCity,int rfqResponseTime,
-			String cadType, Set<String> certifications) {
-		super();
-		this.id = id;
-		this.supplierName = supplierName;
-		this.supplierNationality = supplierNationality;
-		this.supplierCity = supplierCity;
-		this.rfqResponseTime = rfqResponseTime;
-		this.cadType = cadType;
+		this.processes = processes;
 		this.certifications = certifications;
 	}
-
-	public Supplier(String id, String supplierName, String supplierNationality, String supplierCity,
-			Set<Resource> resources) {
-		super();
+	
+	public Supplier (String id, List<Process> processes, List<Material> materials, List<Certification> certifications) {
 		this.id = id;
+		this.processes = processes;
+		//this.materials = materials;
+		this.certifications = certifications;
+	}
+	
+	
+	public Supplier(String supplierName) {
+		super();
 		this.supplierName = supplierName;
-		this.supplierNationality = supplierNationality;
-		this.supplierCity = supplierCity;
-		this.resources = resources;
 	}
 	
 	public Supplier() {}
@@ -85,36 +72,28 @@ public class Supplier {
 	}
 
 
-	public int getRfqResponseTime() {
-		return rfqResponseTime;
-	}
-
-	public void setRfqResponseTime(int rfqResponseTime) {
-		this.rfqResponseTime = rfqResponseTime;
-	}
-
-	public String getCadType() {
-		return cadType;
-	}
-
-	public void setCadType(String cadType) {
-		this.cadType = cadType;
-	}
-
-	public Set<String> getCertifications() {
+	public List<Certification> getCertifications() {
 		return certifications;
 	}
 
-	public void setCertifications(Set<String> certifications) {
+	public void setCertifications(List<Certification> certifications) {
 		this.certifications = certifications;
 	}
 
-	public Set<Resource> getResources() {
-		return resources;
+	public List<Process> getProcesses() {
+		return processes;
 	}
 
-	public void setResources(Set<Resource> resources) {
-		this.resources = resources;
+	public void setProcesses(List<Process> processes) {
+		this.processes = processes;
 	}
+
+//	public List<Material> getMaterials() {
+//		return materials;
+//	}
+//
+//	public void setMaterials(List<Material> materials) {
+//		this.materials = materials;
+//	}
 
 }

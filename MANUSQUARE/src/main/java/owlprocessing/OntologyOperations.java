@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +42,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
+import com.clarkparsia.pellet.owlapiv3.PelletReasoner;
+import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
+
 
 
 /**
@@ -50,21 +54,43 @@ import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 public class OntologyOperations {
 
 	public static void main(String[] args) throws OWLOntologyCreationException {
-		File ontoFile = new File("./files/_PHD_EVALUATION/OAEI2011/ONTOLOGIES/301304/301304-301.rdf");
+		File ontoFile = new File("./files/ONTOLOGIES/updatedOntology.owl");
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontoFile);
 		
-		System.out.println("\nTesting getClassDefinitionsFull()");
+		String source = "CNCMilling";
+		String target = "CNCMilling";
 		
-		Set<String> defTokens = new HashSet<String>();
+		OWLClass sourceClass = getClass(source, onto);
+		OWLClass targetClass = getClass(target, onto);
 		
-		for (OWLClass c : onto.getClassesInSignature()) {
-			defTokens = getClassDefinitionsFull(onto, c);
-			System.out.println("\nTokens for " + c.getIRI().getFragment());
-			for (String s : defTokens) {
-				System.out.println(s);
-			}
+		Set<OWLClassExpression> superclasses = sourceClass.getSuperClasses(onto);
+		System.out.println("Printing superclasses:");
+		for (OWLClassExpression oce : superclasses) {
+			System.out.println(oce.asOWLClass().getIRI().getFragment());
 		}
+		
+		Set<String> sourceSuperClasses = getEntitySuperclasses(onto, sourceClass);
+		Set<String> targetSuperClasses = getEntitySuperclasses(onto, targetClass);
+		
+		System.out.println("\n" + source + " has the following superclasses:");
+		for (String s : sourceSuperClasses) {
+			System.out.println(s);
+		}
+		
+		System.out.println("Trying with the Pellet reasoner");
+		PelletReasonerFactory reasonerFactory =  new PelletReasonerFactory();
+		PelletReasoner reasoner = reasonerFactory.createReasoner(onto);
+		
+		NodeSet<OWLClass> inferredSuperclasses = reasoner.getSuperClasses(sourceClass, false);
+
+		for (OWLClass c : inferredSuperclasses.getFlattened()) {
+			System.out.println(c.getIRI().getFragment());
+		}
+		
+		
+		
+		
 
 	}
 
@@ -77,6 +103,11 @@ public class OntologyOperations {
 	 * The OWLReasonerFactory represents a reasoner creation point.
 	 */
 	static OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+	
+	/**
+	 * 
+	 */
+	static PelletReasonerFactory pelletReasonerFactory = new PelletReasonerFactory();
 
 	/**
 	 * A HashMap holding an OWLEntity as key and an ArrayList of instances
@@ -91,9 +122,75 @@ public class OntologyOperations {
 	public OntologyOperations() {
 
 	}
+	
+//	public Set<String> getAllSuperclassesFromPellet (OWLClass cl, OWLOntology onto) {
+//		Set<String> superClasses = new HashSet<String>();
+//		
+//		PelletReasonerFactory reasonerFactory =  new PelletReasonerFactory();
+//		PelletReasoner reasoner = reasonerFactory.createReasoner(onto);
+//		
+//		NodeSet<OWLClass> inferredSuperclasses = reasoner.getSuperClasses(cl, false);
+//		
+//		for (OWLClass c : inferredSuperclasses.getFlattened()) {
+//			superClasses.add(c.getIRI().getFragment());
+//			
+//		}
+//		
+//		return superClasses;
+//	}
+	
+	/**
+	 * Returns a Map holding a class as key and its superclass as value. This version uses the Pellet reasoner, since the structural reasoner does not include all inferred superclasses of a class.
+	 * 
+	 * @param o
+	 *            the input OWL ontology from which classes and superclasses
+	 *            should be derived
+	 * @return classesAndSuperClasses a Map holding a class as key and its
+	 *         superclass as value
+	 * @throws OWLOntologyCreationException
+	 *             An exception which describes an error during the creation of
+	 *             an ontology. If an ontology cannot be created then subclasses
+	 *             of this class will describe the reasons.
+	 */
+	public static Map<String, String> getClassesAndSuperClassesUsingPellet (OWLOntology o) throws OWLOntologyCreationException {
+
+		PelletReasoner reasoner = pelletReasonerFactory.createReasoner(o);
+		Set<OWLClass> cls = o.getClassesInSignature();
+		Map<String, String> classesAndSuperClasses = new HashMap<String, String>();
+		ArrayList<OWLClass> classList = new ArrayList<OWLClass>();
+
+		for (OWLClass i : cls) {
+			classList.add(i);
+		}
+
+		// Iterate through the arraylist and for each class get the subclasses
+		// belonging to it
+		// Transform from OWLClass to String to simplify further processing...
+		for (int i = 0; i < classList.size(); i++) {
+			OWLClass currentClass = classList.get(i);
+			NodeSet<OWLClass> n = reasoner.getSuperClasses(currentClass, true);
+			Set<OWLClass> s = n.getFlattened();
+			for (OWLClass j : s) {
+				classesAndSuperClasses.put(currentClass.getIRI().getFragment(), j.getIRI().getFragment());
+			}
+		}
+
+		manager.removeOntology(o);
+
+		return classesAndSuperClasses;
+
+	}
 
 
-
+	public static Set<String> getClassesAsString (OWLOntology onto) {
+		Set<String> classesAsString = new HashSet<String>();
+		
+		for (OWLClass c : onto.getClassesInSignature()) {
+			classesAsString.add(c.getIRI().getFragment());
+		}
+		
+		return classesAsString;
+	}
 
 
 	public static OWLClass getClassFromLabel (String label, OWLOntology onto) {
@@ -422,6 +519,10 @@ public class OntologyOperations {
 		return classesAndSuperClasses;
 
 	}
+	
+	
+	
+	
 
 	/**
 	 * Returns a Map holding a class as key and all its superclasses in a Set<String>
@@ -464,6 +565,7 @@ public class OntologyOperations {
 		return classesAndSuperClasses;
 
 	}
+	
 
 	/**
 	 * Returns a Map holding a class as key and all its subclasses in a Set<String>

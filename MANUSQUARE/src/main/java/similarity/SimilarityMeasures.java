@@ -1,137 +1,149 @@
 package similarity;
 
-import java.text.ParseException;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.semanticweb.owlapi.model.OWLOntology;
 
+import edm.Certification;
+import edm.Material;
+import edm.Process;
 import graph.Graph;
 import query.ConsumerQuery;
 import similarity.SimilarityMethodologies.ISimilarity;
 import similarity.SimilarityMethodologies.SimilarityFactory;
 import similarity.SimilarityMethodologies.SimilarityParameters.SimilarityParameters;
 import similarity.SimilarityMethodologies.SimilarityParameters.SimilarityParametersFactory;
-import supplierdata.Resource;
+import supplierdata.Supplier;
 
 public class SimilarityMeasures {
-
-    /**
-     * Computes a similarity score along the facets Process and Certificate, and using either Wu-Palmer, Resnik, Lin or Jiang Conrath.
-     *
-     * @param query            represents a ConsumerQuery.
-     * @param resource         represents a SupplierResource.
-     * @param label            a Neo4J Label instance that distinguishes this particular ontology in the graph database.
-     * @param onto             the ontology from which a graph is created.
-     * @param similarityMethod
-     * @return a similarity score based on a selection of facets. May 14, 2019
-     * @throws ParseException 
-     */
 	
-	 public static double computeSemanticSimilarity(ConsumerQuery query, Resource resource, Label label, OWLOntology onto, SimilarityMethods similarityMethod, boolean weighted) throws ParseException {
-	        ISimilarity similarityMethodology = SimilarityFactory.GenerateSimilarityMethod(similarityMethod);
+	public static List<Double> computeSemanticSimilarity (ConsumerQuery query, Supplier supplier, Label label, OWLOntology onto, SimilarityMethods similarityMethod, boolean weighted) {
+		
+		//System.out.println("\nSimilarityMeasures.java: Computing similarity for supplier " + supplier.getId());
 
-	        // process facet similarity
-	        Node consumerQueryProcessNode = Graph.getNode(query.getRequiredProcess(), label);
-	        
-	        Node supplierResourceProcessNode = Graph.getNode(resource.getProcess(), label);
-	        SimilarityParameters parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryProcessNode, supplierResourceProcessNode, label, onto);
+		//get the list of processes and certifications for this supplier
+		List<Process> processList = supplier.getProcesses();
+		List<Certification> certificationList = supplier.getCertifications();
 
-	        double processSim = similarityMethodology.ComputeSimilarity(parameters);
-	        
-//	        // material facet similarity
-//	        Node consumerQueryMaterialNode = Graph.getNode(query.getRequiredMaterial(), label);	        
-//	        Node supplierResourceMaterialNode = Graph.getNode(resource.getMaterial(), label);
-//	     
-//	        parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryMaterialNode, supplierResourceMaterialNode, label, onto);
-//	        double materialSim = similarityMethodology.ComputeSimilarity(parameters);
-//	        
-//	        // machine facet similarity
-//	        Node consumerQueryMachineNode = Graph.getNode(query.getRequiredMachine(), label);	        
-//	        Node supplierResourceMachineNode = Graph.getNode(resource.getMachine(), label);
-//	        
-//	        parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryMachineNode, supplierResourceMachineNode, label, onto);
-//	        double machineSim = similarityMethodology.ComputeSimilarity(parameters);
-	        
-	        //NEW SIM COMPUTATION FOR CERTIFICATES, USE JACCARD SET SIMILARITY INSTEAD OF OWL PROCESSING
-	        //certificate facet similarity
-	        Set<String> requiredCertificates= query.getRequiredCertificates();	
-	        
-			Set<String> possessedCertificates = resource.getCertifications();
+		ISimilarity similarityMethodology = SimilarityFactory.GenerateSimilarityMethod(similarityMethod);
 
-			double certificateSim = 0;
+		//for each process in the query, compute the process facet similarity
+		Node consumerQueryProcessNode = null;
+		Node supplierResourceProcessNode = null;
 
-			if (possessedCertificates.containsAll(requiredCertificates)) {
-				certificateSim = 1.0;
-			} else {
-				certificateSim = Jaccard.jaccardSetSim(requiredCertificates, possessedCertificates);
-			} 
-			
-			if (weighted) {
+		SimilarityParameters parameters = null;
+
+		Set<String> consumerMaterials = new HashSet<String>();
+		Set<String> supplierMaterials = new HashSet<String>();
+
+		double processAndMaterialSim = 0;
+		double processSim = 0;
+		double materialSim = 0;
+		double certificateSim = 0;
+		double allCombinedSim = 0;
+
+		List<Double> similarityList = new LinkedList<Double>();
+
+		for (Process pc : query.getProcesses()) {
+			for (Process ps : processList) {		
+
+				//represent processes as graph nodes
+				consumerQueryProcessNode = Graph.getNode(pc.getName(), label);
+				supplierResourceProcessNode = Graph.getNode(ps.getName(), label);
+
+				//compute similarity for processes
+				parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryProcessNode, supplierResourceProcessNode, label, onto);
+				processSim = similarityMethodology.ComputeSimilarity(parameters);
 				
-				//weighted variant (processSim 75%, certificateSim 25%)
-				return ( processSim * 0.8 ) + ( certificateSim * 0.2 );
+				//System.out.println("SimilarityMeasures.java: processSim is " + processSim);
+
+				//Check if there are materials specified in the query
+				if (pc.getMaterials() == null || pc.getMaterials().isEmpty()) {
+					processAndMaterialSim = processSim;
+				} else {
+					//materials related to consumer process
+					for (Material m : pc.getMaterials()) {
+						consumerMaterials.add(m.getName());
+					}
+
+					//materials related to supplier process
+					Set<Material> materials = ps.getMaterials();
+					for (Material material : materials) {
+						supplierMaterials.add(material.getName());
+					}
+
+					//if the set of materials in the supplier process contains all materials requested by the consumer --> 1.0
+					if (supplierMaterials.containsAll(consumerMaterials)) {
+						materialSim = 1.0;
+					} else { //if not, localMaterialSim is the Jaccard set similarity between the supplierMaterials and the consumerMaterials
+						materialSim = Jaccard.jaccardSetSim(supplierMaterials, consumerMaterials);
+					}
+					
+					//System.out.println("SimilarityMeasures.java: materialSim is " + materialSim);
+
+					//we should probably prioritise processes over materials
+					if (weighted) {
+						processAndMaterialSim = (processSim * 0.75) + (materialSim * 0.25);
+					} else {
+						processAndMaterialSim = (processSim + materialSim) / 2;
+					}
+					//System.out.println("SimilarityMeasures.java: processAndMaterialSim is " + processAndMaterialSim);
+
+				}
 				
-			} else {
-				
-				//non-weighted variant
-				return (processSim +  certificateSim) / 2;
-			}
-			
-	    }
-	 
-//	 /**
-//	     * Computes a similarity score along the facets Process, Material, Machine and Certificate, and using either Wu-Palmer, Resnik, Lin or Jiang Conrath.
-//	     *
-//	     * @param query            represents a ConsumerQuery.
-//	     * @param resource         represents a SupplierResource.
-//	     * @param label            a Neo4J Label instance that distinguishes this particular ontology in the graph database.
-//	     * @param onto             the ontology from which a graph is created.
-//	     * @param similarityMethod
-//	     * @return a similarity score based on a selection of facets. May 14, 2019
-//	     * @throws ParseException 
-//	     */
-//		
-//		 public static double computeSemanticSimilarity(ConsumerQuery query, Resource resource, Label label, OWLOntology onto, SimilarityMethods similarityMethod) throws ParseException {
-//		        ISimilarity similarityMethodology = SimilarityFactory.GenerateSimilarityMethod(similarityMethod);
-//
-//		        // process facet similarity
-//		        Node consumerQueryProcessNode = Graph.getNode(query.getRequiredProcess(), label);
-//		        
-//		        Node supplierResourceProcessNode = Graph.getNode(resource.getProcess(), label);
-//		        SimilarityParameters parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryProcessNode, supplierResourceProcessNode, label, onto);
-//
-//		        double processSim = similarityMethodology.ComputeSimilarity(parameters);
-//		        
-//		        // material facet similarity
-//		        Node consumerQueryMaterialNode = Graph.getNode(query.getRequiredMaterial(), label);	        
-//		        Node supplierResourceMaterialNode = Graph.getNode(resource.getMaterial(), label);
-//		     
-//		        parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryMaterialNode, supplierResourceMaterialNode, label, onto);
-//		        double materialSim = similarityMethodology.ComputeSimilarity(parameters);
-//		        
-//		        // machine facet similarity
-//		        Node consumerQueryMachineNode = Graph.getNode(query.getRequiredMachine(), label);	        
-//		        Node supplierResourceMachineNode = Graph.getNode(resource.getMachine(), label);
-//		        
-//		        parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryMachineNode, supplierResourceMachineNode, label, onto);
-//		        double machineSim = similarityMethodology.ComputeSimilarity(parameters);
-//		        
-//		        //NEW SIM COMPUTATION FOR CERTIFICATES, USE JACCARD SET SIMILARITY INSTEAD OF OWL PROCESSING
-//		        //certificate facet similarity
-//		        Set<String> requiredCertificates= query.getRequiredCertificates();	
-//		        
-//				Set<String> possessedCertificates = resource.getCertifications();
-//
-//				double certificateSim = 0;
-//
-//				if (possessedCertificates.containsAll(requiredCertificates)) {
-//					certificateSim = 1.0;
-//				} else {
-//					certificateSim = Jaccard.jaccardSetSim(requiredCertificates, possessedCertificates);
-//				} 
-//		        
-//		        return (processSim + materialSim + machineSim + certificateSim) / 4;
-//		    }
+				//certificate facet similarity
+				Set<String> requiredCertificates= new HashSet<String>();
+
+				Set<String> possessedCertificates = new HashSet<String>();
+				for (Certification c : certificationList) {
+					possessedCertificates.add(c.getId());
+				}
+
+				//if the consumer hasn´t specified any required certifications we only compute similarity based on processes (and materials)
+				if (query.getCertifications() == null || query.getCertifications().isEmpty()) {
+					//System.err.println("SimilarityMeasures.java: There are no certifications specified by the consumer!");
+
+					allCombinedSim = processAndMaterialSim;
+
+				} else { //if the consumer has specified required certifications we compute similarity based on processes (and materials) and certifications
+
+					for (Certification c : query.getCertifications()) {
+						requiredCertificates.add(c.getId());
+					}
+
+					if (possessedCertificates.containsAll(requiredCertificates)) {
+						certificateSim = 1.0;
+					} else {
+						certificateSim = Jaccard.jaccardSetSim(requiredCertificates, possessedCertificates);
+					} 
+					
+					//System.out.println("SimilarityMeasures.java: certificateSim is " + certificateSim);
+
+					if (weighted) {
+						allCombinedSim = (processAndMaterialSim * 0.75)  + (certificateSim * 0.25);
+					} else {
+						allCombinedSim = (processAndMaterialSim + certificateSim) / 2;
+					}
+					
+					//System.out.println("allCombinedSim is " + allCombinedSim);
+				}
+
+				similarityList.add(allCombinedSim);
+			}			
+		}	
+		
+		//System.out.println("SimilarityMeasures.java: the similarities for supplier " + supplier.getId() + " are:");		
+//		for (Double d : similarityList) {
+//			System.out.println(d);
+//		}
+
+		return similarityList;
+
+	}
+
 }

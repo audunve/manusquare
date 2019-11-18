@@ -52,6 +52,7 @@ public class Graph {
                 }
             }
         }
+        
 
         //find the common parent with the highest depth (i.e. closest to source and target nodes)
         int maxDepth = 0;
@@ -112,7 +113,9 @@ public class Graph {
      * @throws OWLOntologyCreationException
      */
     public static void createOntologyGraph(OWLOntology onto, Label label) throws OWLOntologyCreationException {
-        Map<String, String> superClassMap = OntologyOperations.getClassesAndSuperClasses(onto);
+        //Map<String, String> superClassMap = OntologyOperations.getClassesAndSuperClasses(onto);
+    	Map<String, String> superClassMap = OntologyOperations.getClassesAndSuperClassesUsingPellet(onto);
+        
         Set<String> classes = superClassMap.keySet();
         Iterator<String> itr = classes.iterator();
 
@@ -158,12 +161,6 @@ public class Graph {
                     }
                 }
             }
-
-            // TO-DO:create the individuals
-
-            // TO-DO:create the object property relations
-
-            // TO-DO:create the datatype properties
 
             tx.success();
         }
@@ -268,7 +265,7 @@ public class Graph {
             for (Path childNodePath : childNodesTraverser) {
                 if (childNodePath.endNode().hasLabel(label)) {
                     childNodeList.add(childNodePath.endNode().getProperty(key));
-                    System.out.println("Adding child-node " + childNodePath.endNode().getProperty(key) + " to list");
+                    //System.out.println("Adding child-node " + childNodePath.endNode().getProperty(key) + " to list");
                 }
             }
             tx.success();
@@ -342,7 +339,7 @@ public class Graph {
      */
     public static ArrayList<Node> getAllParentNodes(Node classNode, Label label) {
     	
-    //System.err.println("Getting parent nodes of " + getNodeName(classNode));
+    		//System.err.println("Graph: Getting parent nodes of " + getNodeName(classNode) + " with label: " + label.toString());
 
         ArrayList<Node> parentNodeList = new ArrayList<Node>();
         Traverser parentNodeTraverser = null;

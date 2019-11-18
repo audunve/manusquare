@@ -289,6 +289,7 @@ public class StringUtilities {
         }
         return label;
     }
+    
 
     /**
      * Removes underscores from a string (replaces underscores with "no space")
@@ -543,6 +544,26 @@ public class StringUtilities {
         }
         return counter;
     }
+    
+    //FROM MANUSQUARE 
+    
+    /**
+   	 * prints each (string) item in a set of items
+   	 * @param certifications
+   	 * @return sequenced string of certifications separated by commas
+   	   Oct 12, 2019
+   	 */
+   	public static String printSetItems(Set<String> set) {
+   		StringBuffer sb = new StringBuffer();
+   		for (String s : set) {
+   			sb.append(s + ", ");
+   		}
+
+   		String setItem = sb.deleteCharAt(sb.lastIndexOf(",")).toString();
+
+   		return setItem;
+
+   	}
 
     // ***Methods not in use***
 
