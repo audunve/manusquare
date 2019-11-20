@@ -1,43 +1,39 @@
 package evaluation;
 
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
+import owlprocessing.OntologyOperations;
+
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Set;
 
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLException;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
-import owlprocessing.OntologyOperations;
-
-
-
-/** 
+/**
  * Prints the subsumption hiearchy of an ontology starting from Thing (or a designated class). This code is borrowed from a tutorial on the OWL API.
+ *
  * @author audunvennesland (originally Sean Bechhofer)
  */
 public class PrintSubsumptionHiearchy {
-    private static int INDENT = 1;
     private final OWLReasonerFactory reasonerFactory;
     private final OWLOntology ontology;
     private final PrintStream out;
 
     private PrintSubsumptionHiearchy(OWLReasonerFactory reasonerFactory,
-            OWLOntology _ontology) {
+                                     OWLOntology _ontology) {
         this.reasonerFactory = reasonerFactory;
         ontology = _ontology;
         out = System.out;
     }
 
-    /** Print the class hierarchy for the given ontology from this class down,
+    /**
+     * Print the class hierarchy for the given ontology from this class down,
      * assuming this class is at the given level. Makes no attempt to deal
-     * sensibly with multiple inheritance. */
+     * sensibly with multiple inheritance.
+     */
     private void printHierarchy(OWLClass clazz) throws OWLException {
         OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(ontology);
         printHierarchy(reasoner, clazz, 0);
@@ -68,9 +64,11 @@ public class PrintSubsumptionHiearchy {
         }
     }
 
-    /** Print the class hierarchy from this class down, assuming this class is at
+    /**
+     * Print the class hierarchy from this class down, assuming this class is at
      * the given level. Makes no attempt to deal sensibly with multiple
-     * inheritance. */
+     * inheritance.
+     */
     private void printHierarchy(OWLReasoner reasoner, OWLClass clazz, int level)
             throws OWLException {
         /*
@@ -78,6 +76,7 @@ public class PrintSubsumptionHiearchy {
          * everywhere
          */
         if (reasoner.isSatisfiable(clazz)) {
+            int INDENT = 1;
             for (int i = 0; i < level * INDENT; i++) {
                 out.print("\t");
             }
@@ -90,25 +89,25 @@ public class PrintSubsumptionHiearchy {
             }
         }
     }
-    
-    
+
+
     public static void main(String[] args) throws OWLException, InstantiationException,
             IllegalAccessException, ClassNotFoundException {
-    	
-    	 	OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
-    	
-    	 	//the file for which its subsumption hiearchy will be printed
-		File ontoFile = new File("./files/manusquare-consumer.owl");
-		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontoFile);
 
-		//gets Thing
+        OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+
+        //the file for which its subsumption hiearchy will be printed
+        File ontoFile = new File("./files/manusquare-consumer.owl");
+        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontoFile);
+
+        //gets Thing
 //        OWLClass clazz = manager.getOWLDataFactory().getOWLThing();
-		OWLClass clazz = OntologyOperations.getClass("MachineType", onto);
-        
+        OWLClass clazz = OntologyOperations.getClass("MachineType", onto);
+
         //Create a new SimpleHierarchy object with the given reasoner.
         PrintSubsumptionHiearchy simpleHierarchy = new PrintSubsumptionHiearchy(
-        		reasonerFactory, onto);
+                reasonerFactory, onto);
 
         // Print the hierarchy including thing
         simpleHierarchy.printHierarchy(clazz);

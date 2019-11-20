@@ -8,8 +8,7 @@ Ranked results from semantic matching
 * ; Process: LaserBeamCutting; Material: CastIron; Machine: LaserCuttingMachine; Capacity: 100; Certifications: ISO9000,ISO9004; From date: 2019-01-15; To date: 2019-04-01
 * ; Process: WaterJetCutting; Material: CarbonSteel; Machine: WaterJetCuttingMachine; Capacity: 125; Certifications: ISO9000,ISO9004; From date: 2019-01-01; To date: 2019-03-15
 
-2; Supplier name: Auer-Dicki; Nation: France; City: Molsheim; Sim score: (0.8157)
-* ; Process: WaterJetCutting; Material: CompactedGraphiteIron; Machine: WaterJetCuttingMachine; Capacity: 150; Certifications: ISO9000,ISO9003,ISO9004; From date: 2019-01-01; To date: 2019-03-15
+git pull* ; Process: WaterJetCutting; Material: CompactedGraphiteIron; Machine: WaterJetCuttingMachine; Capacity: 150; Certifications: ISO9000,ISO9003,ISO9004; From date: 2019-01-01; To date: 2019-03-15
 
 3; Supplier name: Rodriguez Inc; Nation: Portugal; City: Moita; Sim score: (0.8056)
 * ; Process: ManualMilling; Material: StainlessSteel; Machine: ManualMachineTool; Capacity: 50; Certifications: LEED,ISO9004; From date: 2019-03-01; To date: 2019-05-15

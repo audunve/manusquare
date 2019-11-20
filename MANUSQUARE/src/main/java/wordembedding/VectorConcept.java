@@ -18,7 +18,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import fr.inrialpes.exmo.ontosim.vector.CosineVM;
+//import fr.inrialpes.exmo.ontosim.vector.CosineVM;
 import utilities.Cosine;
 import utilities.MathUtils;
 import utilities.StringUtilities;
@@ -249,7 +249,7 @@ public class VectorConcept {
         return sortedMap;
     }
 	
-	public static void printLabelAndGlobalSim(File vectorFileDir, double threshold) throws FileNotFoundException {
+	/*public static void printLabelAndGlobalSim(File vectorFileDir, double threshold) throws FileNotFoundException {
 		
 		//using the cosine measure from OntoSim
 		CosineVM cosine = new CosineVM();
@@ -311,10 +311,10 @@ public class VectorConcept {
 			}
 		}
 		
-	}
+	} */
 
 	
-public static void printGlobalSim(File vectorFileDir, double threshold) throws FileNotFoundException {
+/*public static void printGlobalSim(File vectorFileDir, double threshold) throws FileNotFoundException {
 		
 		//using the cosine measure from OntoSim
 		CosineVM cosine = new CosineVM();
@@ -356,7 +356,7 @@ public static void printGlobalSim(File vectorFileDir, double threshold) throws F
 				}
 			}
 		}		
-	}
+	}*/
 	
 
 	//printing cosine sim based on label vectors and global vectors

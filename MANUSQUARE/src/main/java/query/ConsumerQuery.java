@@ -65,6 +65,17 @@ public class ConsumerQuery {
 		this.certifications = certifications;
 	}
 
+	// I am so sorry for this. TODO: Hack warning
+	public static boolean isJSONValid(String jsonInString) {
+		Gson gson = new Gson();
+		try {
+			gson.fromJson(jsonInString, Object.class);
+			return true;
+		} catch(com.google.gson.JsonSyntaxException ex) {
+			return false;
+		}
+	}
+
 	/**
 	 * Parses a json file and creates a ConsumerQuery object representing the input provided by a consumer in the RFQ establishment process.
 	 * @param filename the path to the input json file.
@@ -76,13 +87,15 @@ public class ConsumerQuery {
 	   Nov 14, 2019
 	 */
 	public static ConsumerQuery createConsumerQuery (String filename, OWLOntology onto) throws JsonSyntaxException, JsonIOException, FileNotFoundException {
-
-		Set<Process> processes = new HashSet<Process>();
+		Set<Process> processes = new HashSet<>();
 		Set<Certification> certifications = new HashSet<Certification>();
-
 		Set<String> processNames = new HashSet<String>();
-
-		RequestForQuotation rfq = new Gson().fromJson(new FileReader(filename), RequestForQuotation.class);
+		RequestForQuotation rfq;
+		if(isJSONValid(filename)) {
+			rfq = new Gson().fromJson(filename, RequestForQuotation.class);
+		} else {
+			rfq = new Gson().fromJson(new FileReader(filename), RequestForQuotation.class);
+		}
 
 		if (rfq.projectAttributes == null || rfq.projectAttributes.isEmpty()) {
 			throw new NoProcessException ("Processes must be included!");
@@ -94,13 +107,10 @@ public class ConsumerQuery {
 
 		//get materials and map them to process
 		Map<String, Set<Material>> materialMap = new HashMap<String, Set<Material>>();
-
 		for (String process : processNames) {
 			Set<Material> materialSet = new HashSet<Material>();
 			for (ProjectAttributeKeys projectAttributes : rfq.projectAttributes) {
-
 				if (projectAttributes.attributeKey.equals("material") && projectAttributes.processName.equals(process)) {
-
 					materialSet.add(new Material(projectAttributes.attributeValue));
 					materialMap.put(process, validateMaterials(materialSet, onto));
 				}			
@@ -108,8 +118,7 @@ public class ConsumerQuery {
 		}
 
 		//if there are materials specified...
-		if (materialMap.size() != 0 || !materialMap.isEmpty()) {
-			//create processes
+		if (materialMap.size() != 0) {
 			for (Entry<String, Set<Material>> e : materialMap.entrySet()) {
 				processes.add(new Process(e.getKey(), e.getValue()));
 			}
@@ -121,28 +130,22 @@ public class ConsumerQuery {
 
 		//validate processes to ensure that we only operate with concepts in the ontology
 		Set<Process> validatedProcesses = validateProcesses(processes, onto);
-
 		ConsumerQuery query = null;
 
 		//get certifications if they are specified by the consumer
 		if (rfq.supplierAttributes == null || rfq.supplierAttributes.isEmpty()) {
-
 			//if no certifications, we only add the processes to the ConsumerQuery object
 			query = new ConsumerQuery(validatedProcesses);
 
 		} else {
-
 			for (SupplierAttributeKeys supplierAttributes : rfq.supplierAttributes) {
 				if (supplierAttributes.attributeKey.equals("certification")) {
 					certifications.add(new Certification(supplierAttributes.attributeValue));
 				}
 			}
-
 			//if there are certifications specified we add those along with processes to the ConsumerQuery object
 			query = new ConsumerQuery(validatedProcesses, validateCertifications(certifications, onto));
-
 		}
-
 		return query;
 	}
 
@@ -245,7 +248,7 @@ public class ConsumerQuery {
 		if (method.equals("levenshtein")) {
 
 			for (String s : ontologyClassesAsString) {
-				similarityMap.put(s, 1-fr.inrialpes.exmo.ontosim.string.StringDistances.levenshteinDistance(input, s));
+		//		similarityMap.put(s, 1-fr.inrialpes.exmo.ontosim.string.StringDistances.levenshteinDistance(input, s));
 			}
 
 			mostSimilarConcept = getConceptWithHighestSim(similarityMap);
@@ -255,7 +258,7 @@ public class ConsumerQuery {
 		else if (method.equals("ngram")) {
 
 			for (String s : ontologyClassesAsString) {
-				similarityMap.put(s, fr.inrialpes.exmo.ontosim.string.StringDistances.ngramDistance(input, s));
+			//	similarityMap.put(s, fr.inrialpes.exmo.ontosim.string.StringDistances.ngramDistance(input, s));
 			}
 
 			mostSimilarConcept = getConceptWithHighestSim(similarityMap);
