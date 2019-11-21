@@ -20,22 +20,25 @@ public class BasicMatchmaking_MVP {
         long startTime = System.currentTimeMillis();
         logging(false);
         int numMatchingResults = 10;
-        String jsonIn = "./files/rfq.json";
+       // String jsonIn = "./files/rfq.json";
         String jsonOut = "./files/matchingResults.json";
 
 
         //if test == true -> local KB + additional data written to console, if test == false, MANUSQUARE Semantic Infrastructure
-        boolean testing = true;
+        boolean testing = false;
 
         //if weighted == true, I'm trying a weight configuration of (process=0.75, materials 0.25; processAndMaterials=0.75, certifications=0.25)
         boolean weighted = true;
 
-        BufferedWriter writer = testing ? new BufferedWriter(new FileWriter(jsonOut)) : new BufferedWriter(new OutputStreamWriter(System.out));
-        if (args.length > 1) {
-            SemanticMatching_MVP.performSemanticMatching(args[1], 10, writer, false, true);
-        }
 
-        SemanticMatching_MVP.performSemanticMatching(jsonIn, numMatchingResults, writer, testing, weighted);
+        BufferedWriter writer = testing ? new BufferedWriter(new FileWriter(jsonOut)) : new BufferedWriter(new OutputStreamWriter(System.out));
+        if (args.length == 1) {
+            System.out.println(args[0]);
+            SemanticMatching_MVP.performSemanticMatching(args[0], 10, writer, testing, true);
+            return;
+        } else {
+        //    SemanticMatching_MVP.performSemanticMatching(jsonIn, numMatchingResults, writer, testing, weighted);
+        }
 
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;

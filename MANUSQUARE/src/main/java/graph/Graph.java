@@ -85,7 +85,7 @@ public class Graph {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         String dbName = String.valueOf(timestamp.getTime());
         File dbFile = new File("/Users/audunvennesland/Documents/phd/development/Neo4J_new/" + dbName);
-        //System.err.println("Creating a new NEO4J database...");
+        System.err.println("Creating a new NEO4J database...");
         GraphDatabaseService db = new GraphDatabaseFactory().newEmbeddedDatabase(dbFile);
 
         String ontologyParameter = StringUtilities.stripPath(sourceOntology.toString());

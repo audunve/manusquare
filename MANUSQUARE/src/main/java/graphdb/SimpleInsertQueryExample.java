@@ -7,6 +7,7 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.query.algebra.Create;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
@@ -67,7 +68,7 @@ public class SimpleInsertQueryExample {
   private static void insert(
     RepositoryConnection repositoryConnection) {
     
-    repositoryConnection.begin();    
+    repositoryConnection.begin();
     Update updateOperation = repositoryConnection
       .prepareUpdate(QueryLanguage.SPARQL, strInsert);
     updateOperation.execute();

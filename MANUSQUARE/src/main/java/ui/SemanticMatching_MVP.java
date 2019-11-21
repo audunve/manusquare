@@ -10,14 +10,25 @@ import edm.Material;
 import edm.Process;
 import edm.SparqlRecord;
 import graph.Graph;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.impl.TreeModel;
+import org.eclipse.rdf4j.model.util.GraphUtil;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.config.RepositoryConfig;
+import org.eclipse.rdf4j.repository.config.RepositoryConfigSchema;
 import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.eclipse.rdf4j.repository.manager.RemoteRepositoryManager;
 import org.eclipse.rdf4j.repository.sparql.SPARQLRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.helpers.StatementCollector;
 import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.Label;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -47,7 +58,7 @@ public class SemanticMatching_MVP {
     static SimilarityMethods similarityMethod = SimilarityMethods.WU_PALMER;
 
     //configuration of the local GraphDB knowledge base (testing)
-    static final String GRAPHDB_SERVER = "http://localhost:7474/"; // Shouldf be configurable., Now we manually fix ths in the docker img
+    static final String GRAPHDB_SERVER = "http://localhost:7200/"; // Should be configurable., Now we manually fix ths in the docker img
     static final String REPOSITORY_ID = "Manusquare_DummyData_10_MVP";
 
     //configuration of the MANUSQUARE Semantic Infrastructure
@@ -88,14 +99,38 @@ public class SemanticMatching_MVP {
         for (Process p : query.getProcesses()) {
             processes.add(p.getName());
         }
-        //re-organise the SupplierResourceRecords so that we have ( Supplier (1) -> Resource (*) )
-        List<Supplier> supplierData = createSupplierData(query, testing);
+
+        // NEED TO CREATE DB BEFORE REORDERING
         try {
             Graph.createOntologyGraph(localOntoFile);
         } catch (OWLOntologyCreationException e) {
             System.err.println("It seems the MANUSQUARE ontology is not available from " + MANUSQUARE_ONTOLOGY_IRI.toString() + "\n");
             e.printStackTrace();
         }
+
+        // Build remote repository if not exist(s)
+        RemoteRepositoryManager remoteRepositoryManager = new RemoteRepositoryManager(GRAPHDB_SERVER);
+        remoteRepositoryManager.initialize();
+
+        // AUDUN PLEASE VALIDATE
+      /*  TreeModel graph = new TreeModel();
+        InputStream config = EmbeddedGraphDB.class.getResourceAsStream("/repo-defaults.ttl");
+        RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
+        rdfParser.setRDFHandler(new StatementCollector(graph));
+        rdfParser.parse(config, RepositoryConfigSchema.NAMESPACE);
+        config.close();
+        // Retrieve the repository node as a resource
+        Resource repositoryNode = GraphUtil.getUniqueSubject(graph, RDF.TYPE, RepositoryConfigSchema.REPOSITORY);
+
+        // Create a repository configuration object and add it to the repositoryManager
+        RepositoryConfig repositoryConfig = RepositoryConfig.create(graph, repositoryNode);
+        remoteRepositoryManager.addRepositoryConfig(repositoryConfig);
+        remoteRepositoryManager.shutDown(); */
+
+
+
+        //re-organise the SupplierResourceRecords so that we have ( Supplier (1) -> Resource (*) )
+        List<Supplier> supplierData = createSupplierData(query, testing);
 
         //used by Neo4J to distinguish a particular ontology graph
         Label label = Label.label(StringUtilities.stripPath(localOntoFile.toString()));
@@ -140,7 +175,6 @@ public class SemanticMatching_MVP {
         if (query.getProcesses() == null || query.getProcesses().isEmpty()) {
             System.err.println("There are no processes specified!");
         } else {
-
             for (Process process : query.getProcesses()) {
                 processNames.add(process.getName());
             }
@@ -149,14 +183,11 @@ public class SemanticMatching_MVP {
 
         long startTime = System.currentTimeMillis();
 
-        if (testing == false) {
-
+        if (!testing) {
             Map<String, String> headers = new HashMap<String, String>();
             headers.put("Authorization", AUTHORISATION_TOKEN);
             headers.put("accept", "application/JSON");
-
             repository = new SPARQLRepository(SPARQL_ENDPOINT);
-
             repository.initialize();
             ((SPARQLRepository) repository).setAdditionalHttpHeaders(headers);
 
@@ -164,7 +195,13 @@ public class SemanticMatching_MVP {
 
             //connect to GraphDB
             repository = new HTTPRepository(GRAPHDB_SERVER, REPOSITORY_ID);
+            HTTPRepository repo = new HTTPRepository(GRAPHDB_SERVER, REPOSITORY_ID);
+            //repo.setPreferredRDFFormat();
+            System.out.println(repo.getRepositoryURL());
+            System.out.println(repo.getPreferredRDFFormat());
             repository.initialize();
+            //repository.getConnection().add();
+            System.out.println(repository.isInitialized());
         }
 
         //creates a SPARQL query that is run against the Semantic Infrastructure
@@ -181,17 +218,14 @@ public class SemanticMatching_MVP {
 
             //if querying the local KB, we need to set setIncludeInferred to false, otherwise inference will include irrelevant results.
             //when querying the Semantic Infrastructure the non-inference is set in the http parameters.
-            if (testing == true) {
+            if (testing) {
                 //do not include inferred statements from the KB
                 tupleQuery.setIncludeInferred(false);
             }
 
             try (TupleQueryResult result = tupleQuery.evaluate()) {
-
                 while (result.hasNext()) {
-
                     BindingSet solution = result.next();
-
                     //omit the NamedIndividual types from the query result
                     if (!solution.getValue("processType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
                             && !solution.getValue("certificationType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
@@ -207,6 +241,8 @@ public class SemanticMatching_MVP {
                     }
                 }
 
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
         }
