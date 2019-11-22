@@ -62,8 +62,8 @@ public class SemanticMatching_MVP {
     static final String REPOSITORY_ID = "Manusquare_DummyData_10_MVP";
 
     //configuration of the MANUSQUARE Semantic Infrastructure
-    static final String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
-    static final String AUTHORISATION_TOKEN = "c5ec0a8b494a30ed41d4d6fe3107990b";
+    static String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
+    static String AUTHORISATION_TOKEN = "c5ec0a8b494a30ed41d4d6fe3107990b";
 
     //if the MANUSQUARE ontology is fetched from url
     static final IRI MANUSQUARE_ONTOLOGY_IRI = IRI.create("http://116.203.187.118/semantic-registry/repository/manusquare/ontology.owl");
@@ -82,6 +82,15 @@ public class SemanticMatching_MVP {
      */
     public static void performSemanticMatching(String inputJson, int numResults,  BufferedWriter writer, boolean testing, boolean isWeighted) throws OWLOntologyStorageException, IOException {
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        String sparql_endpoint_by_env = System.getenv("ONTOLOGY_ADDRESS");
+        if(sparql_endpoint_by_env != null) {
+            SPARQL_ENDPOINT = sparql_endpoint_by_env;
+        }
+        if(System.getenv("ONTOLOGY_KEY") != null) {
+            AUTHORISATION_TOKEN = System.getenv("ONTOLOGY_KEY");
+        }
+
+
         OWLOntology ontology = null;
         try {
             ontology = manager.loadOntology(MANUSQUARE_ONTOLOGY_IRI);
@@ -109,8 +118,8 @@ public class SemanticMatching_MVP {
         }
 
         // Build remote repository if not exist(s)
-        RemoteRepositoryManager remoteRepositoryManager = new RemoteRepositoryManager(GRAPHDB_SERVER);
-        remoteRepositoryManager.initialize();
+        //RemoteRepositoryManager remoteRepositoryManager = new RemoteRepositoryManager(GRAPHDB_SERVER);
+        //remoteRepositoryManager.initialize();
 
         // AUDUN PLEASE VALIDATE
       /*  TreeModel graph = new TreeModel();
