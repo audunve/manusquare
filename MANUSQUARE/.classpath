@@ -35,6 +35,8 @@
 	<classpathentry kind="lib" path="lib/rita.jar"/>
 	<classpathentry kind="lib" path="lib/rita.support.jar"/>
 	<classpathentry kind="lib" path="lib/ws4j-1.0.1.jar"/>
+	<classpathentry kind="lib" path="/Users/audunvennesland/git/manusquare/MANUSQUARE/lib/HermiT.jar"/>
+	<classpathentry kind="lib" path="/Users/audunvennesland/git/manusquare/MANUSQUARE/lib/org.semanticweb.HermiT.jar"/>
 	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>

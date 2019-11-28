@@ -3,6 +3,11 @@ package json;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Represents a RequestForQuotation object parsed from the JSON received by the Gateway Orchestrator.
+ * @author audunvennesland
+ *
+ */
 public class RequestForQuotation {
 
 	String nda;
@@ -49,6 +54,12 @@ public class RequestForQuotation {
 		this.projectAttributes = projectAttributes;
 	}
 	
+	/**
+	 * ProjectAttributeKey is a separate element in the JSON received from the Gateway Orchestrator. 
+	 * This element encompasses which processes and associated materials the Consumer is interested in.
+	 * @author audunvennesland
+	 *
+	 */
 	public class ProjectAttributeKeys {
 		
 		public String attributeId;
@@ -99,6 +110,12 @@ public class RequestForQuotation {
 		
 	}
 	
+	/**
+	 * SupplierAttributeKey is a separate element in the JSON received from the Gateway Orchestrator. 
+	 * This element encompasses certifications the Consumer wants/requires that a relevant supplier possesses.
+	 * @author audunvennesland
+	 *
+	 */
 	public class SupplierAttributeKeys {
 		
 		public String id;

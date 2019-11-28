@@ -19,20 +19,6 @@ public class Material {
 		this.name = name;
 	}
 	
-//	@Override
-//	public boolean equals (Object object) {
-//		boolean result = false;
-//		if (object == null || object.getClass() != getClass()) {
-//			result = false;
-//		} else {
-//			Material material = (Material) object;
-//			if (this.name == material.getName()) {
-//				result = true;
-//			}
-//		}
-//		return result;
-//	}
-	
 	//TODO: See if a better approach exist: Use an overridden equals method to ensure that materials with the same name are not contained within the same list.
 	@Override
 	public boolean equals (Object o) {

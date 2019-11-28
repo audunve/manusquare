@@ -83,12 +83,21 @@
      <artifactId>google-api-client</artifactId>
      <version>1.30.2</version>
    </dependency>
+   
    <!--  Used for the multimap implementation of guava -->
-   <dependency>
+<!--    <dependency> -->
+<!--     <groupId>com.google.guava</groupId> -->
+<!--     <artifactId>guava</artifactId> -->
+<!--     <version>21.0</version> -->
+<!-- </dependency> -->
+
+<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+<dependency>
     <groupId>com.google.guava</groupId>
     <artifactId>guava</artifactId>
-    <version>21.0</version>
+    <version>28.0-jre</version>
 </dependency>
+
 
 
 		<!-- <dependency> <groupId>org.json</groupId> <artifactId>json</artifactId> 

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -41,9 +43,13 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
+import org.slf4j.LoggerFactory;
 
 import com.clarkparsia.pellet.owlapiv3.PelletReasoner;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 
 
 
@@ -54,6 +60,8 @@ import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 public class OntologyOperations {
 
 	public static void main(String[] args) throws OWLOntologyCreationException {
+		logging(false);
+		
 		File ontoFile = new File("./files/ONTOLOGIES/updatedOntology.owl");
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontoFile);
@@ -82,12 +90,21 @@ public class OntologyOperations {
 		PelletReasonerFactory reasonerFactory =  new PelletReasonerFactory();
 		PelletReasoner reasoner = reasonerFactory.createReasoner(onto);
 		
-		NodeSet<OWLClass> inferredSuperclasses = reasoner.getSuperClasses(sourceClass, false);
+		NodeSet<OWLClass> inferredSuperclassesPellet = reasoner.getSuperClasses(sourceClass, false);
 
-		for (OWLClass c : inferredSuperclasses.getFlattened()) {
+		for (OWLClass c : inferredSuperclassesPellet.getFlattened()) {
 			System.out.println(c.getIRI().getFragment());
 		}
 		
+		
+		System.out.println("\nTrying with the Hermit reasoner");
+		Reasoner hermit = new Reasoner(onto);
+		
+		NodeSet<OWLClass> inferredSuperclassesHermit = hermit.getSuperClasses(sourceClass, false);
+
+		for (OWLClass c : inferredSuperclassesHermit.getFlattened()) {
+			System.out.println(c.getIRI().getFragment());
+		}
 		
 		
 		
@@ -123,21 +140,21 @@ public class OntologyOperations {
 
 	}
 	
-//	public Set<String> getAllSuperclassesFromPellet (OWLClass cl, OWLOntology onto) {
-//		Set<String> superClasses = new HashSet<String>();
-//		
-//		PelletReasonerFactory reasonerFactory =  new PelletReasonerFactory();
-//		PelletReasoner reasoner = reasonerFactory.createReasoner(onto);
-//		
-//		NodeSet<OWLClass> inferredSuperclasses = reasoner.getSuperClasses(cl, false);
-//		
-//		for (OWLClass c : inferredSuperclasses.getFlattened()) {
-//			superClasses.add(c.getIRI().getFragment());
-//			
-//		}
-//		
-//		return superClasses;
-//	}
+	public static Set<String> getAllSuperclassesFromPellet (OWLClass cl, OWLOntology onto) {
+		Set<String> superClasses = new HashSet<String>();
+		
+		PelletReasonerFactory reasonerFactory =  new PelletReasonerFactory();
+		PelletReasoner reasoner = reasonerFactory.createReasoner(onto);
+		
+		NodeSet<OWLClass> inferredSuperclasses = reasoner.getSuperClasses(cl, false);
+		
+		for (OWLClass c : inferredSuperclasses.getFlattened()) {
+			superClasses.add(c.getIRI().getFragment());
+			
+		}
+		
+		return superClasses;
+	}
 	
 	/**
 	 * Returns a Map holding a class as key and its superclass as value. This version uses the Pellet reasoner, since the structural reasoner does not include all inferred superclasses of a class.
@@ -153,7 +170,7 @@ public class OntologyOperations {
 	 *             of this class will describe the reasons.
 	 */
 	public static Map<String, String> getClassesAndSuperClassesUsingPellet (OWLOntology o) throws OWLOntologyCreationException {
-
+		logging(false);
 		PelletReasoner reasoner = pelletReasonerFactory.createReasoner(o);
 		Set<OWLClass> cls = o.getClassesInSignature();
 		Map<String, String> classesAndSuperClasses = new HashMap<String, String>();
@@ -1492,6 +1509,23 @@ public class OntologyOperations {
 
 
 		return clsSet;
+	}
+	
+	private static void logging(boolean logging) {
+		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http", "org.eclipse.rdf4j", "org.mindswap.pellet.KnowledgeBase"));
+
+		if (logging == false) {			
+			for(String log:loggers) { 
+				Logger logger = (Logger)LoggerFactory.getLogger(log);
+				logger.setLevel(Level.ERROR);
+				logger.setAdditive(false);
+			}
+		} else {
+
+			System.out.println("Logging:");
+
+		}
+
 	}
 
 }

@@ -38,19 +38,21 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
+import com.google.common.graph.MutableGraph;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import edm.Certification;
 import edm.Material;
 import edm.Process;
-import edm.SparqlRecord;
 import graph.Graph;
+import graph.SimpleGraph;
 import query.ConsumerQuery;
 import similarity.MatchingResult;
 import similarity.SimilarityMeasures;
 import similarity.SimilarityMethods;
 import sparql.SparqlQuery;
+import sparql.SparqlRecord;
 import supplierdata.Supplier;
 import utilities.MathUtils;
 import utilities.StringUtilities;
@@ -66,7 +68,7 @@ public class SemanticMatching_MVP {
 
 	//configuration of the local GraphDB knowledge base (testing)
 	static final String GRAPHDB_SERVER = "http://localhost:7200/";
-	static final String REPOSITORY_ID = "Manusquare_DummyData_10_MVP";
+	static final String REPOSITORY_ID = "Manusquare_200";
 
 	//configuration of the MANUSQUARE Semantic Infrastructure	
 	static final String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
@@ -77,7 +79,7 @@ public class SemanticMatching_MVP {
 
 	//used by Neo4J
 	static Label label;
-
+	
 	/**
 	 * Matches a consumer query against a set of resources offered by suppliers and returns a ranked list of the [numResult] suppliers having the highest semantic similarity as a JSON file.
 	 * @param inputJSONFile an input json file holding process(es) and certifications from the RFQ creation process.
@@ -90,21 +92,35 @@ public class SemanticMatching_MVP {
 	 * @throws OWLOntologyStorageException
 	   Oct 31, 2019
 	 */
-	public static void performSemanticMatching(String inputJSONFile, int numResults, String outputJsonFile, boolean testing, boolean weighted) throws IOException, ParseException, OWLOntologyStorageException {
+	public static void performSemanticMatching(String inputJSONFile, int numResults, String outputJsonFile, boolean testing, boolean weighted) throws IOException, ParseException, OWLOntologyStorageException, OWLOntologyCreationException {
 
+		//path to a locally saved copy of the MANUSQUARE ontology for graph processing
+		File localOntoFile = new File("./files/ONTOLOGIES/updatedOntology.owl");
+		
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		OWLOntology onto = null;
+		
+		//use MANUSQUARE ontology provided by Semantic Infrastructure if we´re not testing, use
+		//locally stored ontology if testing
+		if (testing == false) {
 		
 		try {
 			onto = manager.loadOntology(MANUSQUARE_ONTOLOGY_IRI);
 		} catch (OWLOntologyCreationException e) {
-			System.err.println("It seems the MANUSQUARE ontology is not available from " + MANUSQUARE_ONTOLOGY_IRI.toString() + "\n");
+			System.err.println("Error: Cannot reach the MANUSQUARE ontology from " + MANUSQUARE_ONTOLOGY_IRI.toString() + "\n");
 			e.printStackTrace();
 		}
 
-		//save a local copy of the ontology for graph processing
-		File localOntoFile = new File("./files/ONTOLOGIES/updatedOntology.owl");
 		manager.saveOntology(onto, IRI.create(localOntoFile.toURI()));
+		
+		} else {
+			try {
+				onto = manager.loadOntologyFromOntologyDocument(localOntoFile);
+			} catch (OWLOntologyCreationException e) {
+				System.err.println("Error: Cannot reach the MANUSQUARE ontology locally from " + localOntoFile.getPath() + "\n");
+				e.printStackTrace();
+			}
+		}
 
 		//parse input json file and create a consumer query object
 		ConsumerQuery query = ConsumerQuery.createConsumerQuery(inputJSONFile, onto);
@@ -118,16 +134,9 @@ public class SemanticMatching_MVP {
 		//re-organise the SupplierResourceRecords so that we have ( Supplier (1) -> Resource (*) )
 		List<Supplier> supplierData = createSupplierData(query, testing);
 
-		//create a graph representation of the MANUSQUARE ontology using NEO4J
-		try {
-			Graph.createOntologyGraph(localOntoFile);
-		} catch (OWLOntologyCreationException e) {
-			System.err.println("It seems the MANUSQUARE ontology is not available from " + MANUSQUARE_ONTOLOGY_IRI.toString() + "\n");
-			e.printStackTrace();
-		}
 
-		//used by Neo4J to distinguish a particular ontology graph
-		Label label = DynamicLabel.label(StringUtilities.stripPath(localOntoFile.toString()));
+		//create graph using Guava´s graph library
+		MutableGraph<String> graph = SimpleGraph.createGraph(onto);
 
 		Map<Supplier, Double> supplierScores = new HashMap<Supplier, Double>();
 
@@ -136,7 +145,7 @@ public class SemanticMatching_MVP {
 		
 		for (Supplier supplier : supplierData) {
 
-			supplierSim = SimilarityMeasures.computeSemanticSimilarity(query, supplier, label, onto, similarityMethod, weighted);
+			supplierSim = SimilarityMeasures.computeSemanticSimilarity(query, supplier, onto, similarityMethod, weighted, graph);
 			
 			//get the highest score for the process chains offered by supplier n
 			supplierScores.put(supplier, getHighestScore(supplierSim));
@@ -219,7 +228,7 @@ public class SemanticMatching_MVP {
 				tupleQuery.setIncludeInferred(false);
 			}
 
-			try (TupleQueryResult result = tupleQuery.evaluate()) {
+			try (TupleQueryResult result = tupleQuery.evaluate()) {			
 
 				while (result.hasNext()) {
 
@@ -239,8 +248,15 @@ public class SemanticMatching_MVP {
 						recordSet.add(record);
 					}
 				}
+				
 
-			}	
+			}	catch (Exception e) {
+				System.err.println(e.getMessage());
+				System.err.println("Wrong test data!");
+			}
+			
+
+			
 
 		}
 
@@ -348,8 +364,6 @@ public class SemanticMatching_MVP {
 		return suppliersList;
 
 	}
-
-
 
 
 	/**
@@ -501,48 +515,6 @@ public class SemanticMatching_MVP {
 
 	}
 
-//	/**
-//	 * Prints a ranked list of suppliers along with similarity scores to a JSON file
-//	 * @param supplierScores Map of suppliers (key) and their similarity scores (value)
-//	 * @param numResults the number of results to include in the ranked list
-//	 * @param outputJsonFile path to JSON file
-//	 * @throws IOException
-//	   Nov 4, 2019
-//	 */
-//	private static void printResultsToJson (Map<Supplier, Double> supplierScores, int numResults, String outputJsonFile) throws IOException {
-//
-//		//sort the results from highest to lowest score and return the [numResults] highest scores
-//		Map<Supplier, Double> rankedResults = sortDescending(supplierScores);
-//		Iterable<Entry<Supplier, Double>> firstEntries =
-//				Iterables.limit(rankedResults.entrySet(), numResults);
-//
-//		//put the [numResults] highest scores in a (sorted) JSON array
-//		Map<String, Double> finalSupplierMap = new LinkedHashMap<String, Double>();		
-//		for (Entry<Supplier, Double> e : firstEntries) {
-//
-//			finalSupplierMap.put(e.getKey().getId(), e.getValue());
-//
-//		}
-//
-//		int rank = 1;
-//		List<MatchingResult> scores = new LinkedList<MatchingResult>();
-//
-//		for (Entry<String, Double> e : finalSupplierMap.entrySet()) {
-//			scores.add(new MatchingResult(rank, e.getKey(), e.getValue()));
-//			rank++;
-//		}
-//
-//		Gson gson = new GsonBuilder().create();
-//
-//		String json = gson.toJson(scores);
-//
-//		//System.out.println(json);
-//
-//		FileWriter writer = new FileWriter(outputJsonFile);
-//		writer.write(json);
-//		writer.close();
-//
-//	}
 
 	/**
 	 * Sorts the scores for each resource offered by a supplier (from highest to lowest)
@@ -559,21 +531,6 @@ public class SemanticMatching_MVP {
 
 	}
 
-	/**
-	 * Returns the average score of all scores for each resource offered by a supplier
-	 * @param inputScores a list of scores for each supplier resource assigned by the semantic matching 
-	 * @return the average score of all scores for each supplier resource
-	   Oct 30, 2019
-	 */
-	private static double getAverageScore (List<Double> inputScores) {
-		double sum = 0;
-
-		for(double d : inputScores) {
-			sum += d;
-		}
-
-		return sum / inputScores.size();
-	}
 
 	/** 
 	 * Sorts a map based on similarity scores (values in the map)
@@ -595,24 +552,5 @@ public class SemanticMatching_MVP {
 
 		return sortedByValues;
 	}
-
-	/**
-	 * prints each (string) item in a set of items
-	 * @param certifications
-	 * @return sequenced string of certifications separated by commas
-	   Oct 12, 2019
-	 */
-	private static String printSetItems(Set<String> set) {
-		StringBuffer sb = new StringBuffer();
-		for (String s : set) {
-			sb.append(s + ",");
-		}
-
-		String setItem = sb.deleteCharAt(sb.lastIndexOf(",")).toString();
-
-		return setItem;
-
-	}
-
 
 }

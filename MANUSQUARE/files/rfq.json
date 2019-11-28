@@ -7,17 +7,17 @@
 	"servicePolicy": "true",
 	"projectId": "project-1254161155",
 	"id": "project-1254161155",
-	"projectType": "Capacity Sharing",
+	"processNames": ["Milling"],
 	"projectAttributes": [
 		{
 			"attributeId": "E",
-			"processName": "Drilling",
+			"processName": "Milling",
 			"attributeKey": "material",
 			"attributeValue": "CarbonSteel"
 		},
 		{
 			"attributeId": "E",
-			"processName": "HoleMaking",
+			"processName": "Milling",
 			"attributeKey": "material",
 			"attributeValue": "Steel"
 		}

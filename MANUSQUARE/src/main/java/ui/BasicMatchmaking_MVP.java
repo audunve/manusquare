@@ -31,8 +31,8 @@ public class BasicMatchmaking_MVP {
 		boolean testing = true;
 		
 		//if weighted == true, I'm trying a weight configuration of (process=0.75, materials 0.25; processAndMaterials=0.75, certifications=0.25)
-		boolean weighted = true;
-		
+		boolean weighted = true;		
+
 		SemanticMatching_MVP.performSemanticMatching(jsonIn, numMatchingResults, jsonOut, testing, weighted);
 		
         long stopTime = System.currentTimeMillis();
