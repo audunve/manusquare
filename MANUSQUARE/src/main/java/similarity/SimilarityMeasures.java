@@ -5,14 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
 import org.semanticweb.owlapi.model.OWLOntology;
+
+import com.google.common.graph.MutableGraph;
 
 import edm.Certification;
 import edm.Material;
 import edm.Process;
-import graph.Graph;
 import query.ConsumerQuery;
 import similarity.SimilarityMethodologies.ISimilarity;
 import similarity.SimilarityMethodologies.SimilarityFactory;
@@ -22,10 +21,8 @@ import supplierdata.Supplier;
 
 public class SimilarityMeasures {
 	
-	public static List<Double> computeSemanticSimilarity (ConsumerQuery query, Supplier supplier, Label label, OWLOntology onto, SimilarityMethods similarityMethod, boolean weighted) {
+	public static List<Double> computeSemanticSimilarity (ConsumerQuery query, Supplier supplier, OWLOntology onto, SimilarityMethods similarityMethod, boolean weighted, MutableGraph<String> graph) {
 		
-		//System.out.println("\nSimilarityMeasures.java: Computing similarity for supplier " + supplier.getId());
-
 		//get the list of processes and certifications for this supplier
 		List<Process> processList = supplier.getProcesses();
 		List<Certification> certificationList = supplier.getCertifications();
@@ -33,8 +30,8 @@ public class SimilarityMeasures {
 		ISimilarity similarityMethodology = SimilarityFactory.GenerateSimilarityMethod(similarityMethod);
 
 		//for each process in the query, compute the process facet similarity
-		Node consumerQueryProcessNode = null;
-		Node supplierResourceProcessNode = null;
+		String consumerQueryProcessNode = null;
+		String supplierResourceProcessNode = null;
 
 		SimilarityParameters parameters = null;
 
@@ -53,15 +50,13 @@ public class SimilarityMeasures {
 			for (Process ps : processList) {		
 
 				//represent processes as graph nodes
-				consumerQueryProcessNode = Graph.getNode(pc.getName(), label);
-				supplierResourceProcessNode = Graph.getNode(ps.getName(), label);
+				consumerQueryProcessNode = pc.getName();
+				supplierResourceProcessNode = ps.getName();
 
 				//compute similarity for processes
-				parameters = SimilarityParametersFactory.CreateNeo4JParameters(similarityMethod, consumerQueryProcessNode, supplierResourceProcessNode, label, onto);
-				processSim = similarityMethodology.ComputeSimilarity(parameters);
+				parameters = SimilarityParametersFactory.CreateSimpleGraphParameters(similarityMethod, consumerQueryProcessNode, supplierResourceProcessNode, onto, graph);
+				processSim = similarityMethodology.ComputeSimilaritySimpleGraph(parameters);
 				
-				//System.out.println("SimilarityMeasures.java: processSim is " + processSim);
-
 				//Check if there are materials specified in the query
 				if (pc.getMaterials() == null || pc.getMaterials().isEmpty()) {
 					processAndMaterialSim = processSim;
@@ -84,16 +79,12 @@ public class SimilarityMeasures {
 						materialSim = Jaccard.jaccardSetSim(supplierMaterials, consumerMaterials);
 					}
 					
-					//System.out.println("SimilarityMeasures.java: materialSim is " + materialSim);
-
 					//we should probably prioritise processes over materials
 					if (weighted) {
 						processAndMaterialSim = (processSim * 0.75) + (materialSim * 0.25);
 					} else {
 						processAndMaterialSim = (processSim + materialSim) / 2;
 					}
-					//System.out.println("SimilarityMeasures.java: processAndMaterialSim is " + processAndMaterialSim);
-
 				}
 				
 				//certificate facet similarity
@@ -106,7 +97,6 @@ public class SimilarityMeasures {
 
 				//if the consumer hasn´t specified any required certifications we only compute similarity based on processes (and materials)
 				if (query.getCertifications() == null || query.getCertifications().isEmpty()) {
-					//System.err.println("SimilarityMeasures.java: There are no certifications specified by the consumer!");
 
 					allCombinedSim = processAndMaterialSim;
 
@@ -122,7 +112,6 @@ public class SimilarityMeasures {
 						certificateSim = Jaccard.jaccardSetSim(requiredCertificates, possessedCertificates);
 					} 
 					
-					//System.out.println("SimilarityMeasures.java: certificateSim is " + certificateSim);
 
 					if (weighted) {
 						allCombinedSim = (processAndMaterialSim * 0.75)  + (certificateSim * 0.25);
@@ -130,17 +119,12 @@ public class SimilarityMeasures {
 						allCombinedSim = (processAndMaterialSim + certificateSim) / 2;
 					}
 					
-					//System.out.println("allCombinedSim is " + allCombinedSim);
 				}
 
 				similarityList.add(allCombinedSim);
 			}			
 		}	
 		
-		//System.out.println("SimilarityMeasures.java: the similarities for supplier " + supplier.getId() + " are:");		
-//		for (Double d : similarityList) {
-//			System.out.println(d);
-//		}
 
 		return similarityList;
 

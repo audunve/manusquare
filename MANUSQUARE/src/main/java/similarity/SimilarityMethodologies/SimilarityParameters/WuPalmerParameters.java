@@ -1,16 +1,16 @@
 package similarity.SimilarityMethodologies.SimilarityParameters;
 
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
+import com.google.common.graph.MutableGraph;
 
 public class WuPalmerParameters extends SimilarityParameters {
-    public Node sourceNode;
-    public Node targetNode;
-    public Label label;
+    public String sourceNode;
+    public String targetNode;
+    public MutableGraph<String> graph;
 
-    public WuPalmerParameters(Node sourceNode, Node targetNode, Label label) {
+    public WuPalmerParameters(String sourceNode, String targetNode, MutableGraph<String> graph) {
         this.sourceNode = sourceNode;
         this.targetNode = targetNode;
-        this.label = label;
+        this.graph = graph;
     }
+    
 }

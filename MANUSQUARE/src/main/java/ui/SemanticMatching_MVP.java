@@ -3,13 +3,15 @@ package ui;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
+import com.google.common.graph.MutableGraph;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edm.Certification;
 import edm.Material;
 import edm.Process;
 import edm.SparqlRecord;
-import graph.Graph;
+import graph.SimpleGraph;
+
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.impl.TreeModel;
 import org.eclipse.rdf4j.model.util.GraphUtil;
@@ -59,7 +61,7 @@ public class SemanticMatching_MVP {
 
     //configuration of the local GraphDB knowledge base (testing)
     static final String GRAPHDB_SERVER = "http://localhost:7200/"; // Should be configurable., Now we manually fix ths in the docker img
-    static final String REPOSITORY_ID = "Manusquare_DummyData_10_MVP";
+    static final String REPOSITORY_ID = "Manusquare_200";
 
     //configuration of the MANUSQUARE Semantic Infrastructure
     static String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
@@ -67,9 +69,6 @@ public class SemanticMatching_MVP {
 
     //if the MANUSQUARE ontology is fetched from url
     static final IRI MANUSQUARE_ONTOLOGY_IRI = IRI.create("http://116.203.187.118/semantic-registry/repository/manusquare/ontology.owl");
-
-    //used by Neo4J
-    static Label label;
 
     /**
      * Matches a consumer query against a set of resources offered by suppliers and returns a ranked list of the [numResult] suppliers having the highest semantic similarity as a JSON file.
@@ -80,7 +79,7 @@ public class SemanticMatching_MVP {
      * @throws IOException
      * @throws OWLOntologyStorageException  Oct 31, 2019
      */
-    public static void performSemanticMatching(String inputJson, int numResults,  BufferedWriter writer, boolean testing, boolean isWeighted) throws OWLOntologyStorageException, IOException {
+    public static void performSemanticMatching(String inputJson, int numResults, BufferedWriter writer, boolean testing, boolean isWeighted) throws OWLOntologyStorageException, IOException {
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         String sparql_endpoint_by_env = System.getenv("ONTOLOGY_ADDRESS");
         if(sparql_endpoint_by_env != null) {
@@ -100,7 +99,10 @@ public class SemanticMatching_MVP {
         }
 
         //save a local copy of the ontology for graph processing //WHY?
+        //AUDUN: The (updated) copy of the ontology retrieved from SI is used for constructing the graph used for the wu-palmer computation.
         File localOntoFile = new File("./files/ONTOLOGIES/updatedOntology.owl");
+        
+        //we need to save the ontology locally in order to construct the ontology graph using Guava´s graphs structures.
         manager.saveOntology(Objects.requireNonNull(ontology), IRI.create(localOntoFile.toURI())); // I have NO idea whether or not this is needed, or should be a one time thing. TODO: AUDUN CHECK
 
         ConsumerQuery query = ConsumerQuery.createConsumerQuery(inputJson, ontology); // get process(s) from the query and use them to subset the supplier records in the SPARQL query
@@ -108,46 +110,24 @@ public class SemanticMatching_MVP {
         for (Process p : query.getProcesses()) {
             processes.add(p.getName());
         }
-
-        // NEED TO CREATE DB BEFORE REORDERING
-        try {
-            Graph.createOntologyGraph(localOntoFile);
-        } catch (OWLOntologyCreationException e) {
-            System.err.println("It seems the MANUSQUARE ontology is not available from " + MANUSQUARE_ONTOLOGY_IRI.toString() + "\n");
-            e.printStackTrace();
-        }
-
-        // Build remote repository if not exist(s)
-        //RemoteRepositoryManager remoteRepositoryManager = new RemoteRepositoryManager(GRAPHDB_SERVER);
-        //remoteRepositoryManager.initialize();
-
-        // AUDUN PLEASE VALIDATE
-      /*  TreeModel graph = new TreeModel();
-        InputStream config = EmbeddedGraphDB.class.getResourceAsStream("/repo-defaults.ttl");
-        RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
-        rdfParser.setRDFHandler(new StatementCollector(graph));
-        rdfParser.parse(config, RepositoryConfigSchema.NAMESPACE);
-        config.close();
-        // Retrieve the repository node as a resource
-        Resource repositoryNode = GraphUtil.getUniqueSubject(graph, RDF.TYPE, RepositoryConfigSchema.REPOSITORY);
-
-        // Create a repository configuration object and add it to the repositoryManager
-        RepositoryConfig repositoryConfig = RepositoryConfig.create(graph, repositoryNode);
-        remoteRepositoryManager.addRepositoryConfig(repositoryConfig);
-        remoteRepositoryManager.shutDown(); */
-
-
+        
+        //create graph using Guava´s graph library instead of using Neo4j
+        MutableGraph<String> graph = null;
+      	try {
+			graph = SimpleGraph.createGraph(ontology);
+		} catch (OWLOntologyCreationException e) {
+			System.err.println("It seems the MANUSQUARE ontology is not available from " + MANUSQUARE_ONTOLOGY_IRI.toString() + "\n");
+			e.printStackTrace();
+		}
 
         //re-organise the SupplierResourceRecords so that we have ( Supplier (1) -> Resource (*) )
         List<Supplier> supplierData = createSupplierData(query, testing);
-
-        //used by Neo4J to distinguish a particular ontology graph
-        Label label = Label.label(StringUtilities.stripPath(localOntoFile.toString()));
+        
         Map<Supplier, Double> supplierScores = new HashMap<Supplier, Double>();
         //for each supplier get the list of best matching processes (and certifications)
         List<Double> supplierSim = new LinkedList<Double>();
         for (Supplier supplier : supplierData) {
-            supplierSim = SimilarityMeasures.computeSemanticSimilarity(query, supplier, label, ontology, similarityMethod, isWeighted);
+            supplierSim = SimilarityMeasures.computeSemanticSimilarity(query, supplier, ontology, similarityMethod, isWeighted, graph);
             //get the highest score for the process chains offered by supplier n
             supplierScores.put(supplier, getHighestScore(supplierSim));
         }
@@ -165,8 +145,7 @@ public class SemanticMatching_MVP {
         }
 
     }
-
-
+    
 
     /**
      * Retrieves (relevant) data / concepts from the Semantic Infrastructure using the content of a consumer query as input.
@@ -477,7 +456,7 @@ public class SemanticMatching_MVP {
         return finalSupplierMap;
 
     }
-
+    
     /**
      * Prints a ranked list of suppliers along with similarity scores to a JSON file
      *
