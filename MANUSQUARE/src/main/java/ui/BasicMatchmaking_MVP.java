@@ -16,55 +16,57 @@ import java.util.Set;
 public class BasicMatchmaking_MVP {
 
 
-    public static void main(String[] args) throws OWLOntologyCreationException, IOException, ParseException, JSONException, OWLOntologyStorageException {
-        long startTime = System.currentTimeMillis();
-        logging(false);
-        int numMatchingResults = 10;
-       // String jsonIn = "./files/rfq.json";
-        String jsonOut = "./files/matchingResults.json";
+	public static void main(String[] args) throws OWLOntologyCreationException, IOException, ParseException, JSONException, OWLOntologyStorageException {
+		long startTime = System.currentTimeMillis();
+		logging(false);
+		int numMatchingResults = 10;
+		// String jsonIn = "./files/rfq.json";
+		String jsonOut = "./files/matchingResults.json";
 
 
-        //if test == true -> local KB + additional data written to console, if test == false, MANUSQUARE Semantic Infrastructure
-        boolean testing = false;
+		//if test == true -> local KB + additional data written to console, if test == false, MANUSQUARE Semantic Infrastructure
+		boolean testing = false;
 
-        //if weighted == true, I'm trying a weight configuration of (process=0.75, materials 0.25; processAndMaterials=0.75, certifications=0.25)
-        boolean weighted = true;
-
-
-        BufferedWriter writer = testing ? new BufferedWriter(new FileWriter(jsonOut)) : new BufferedWriter(new OutputStreamWriter(System.out));
-        if (args.length == 1) {
-            System.out.println(args[0]);
-            SemanticMatching_MVP.performSemanticMatching(args[0], 10, writer, testing, true);
-            return;
-        } else {
-        //    SemanticMatching_MVP.performSemanticMatching(jsonIn, numMatchingResults, writer, testing, weighted);
-        }
-    
-        long stopTime = System.currentTimeMillis();
-        long elapsedTime = stopTime - startTime;
-
-        if (testing) {
-            System.out.println("The entire Matchmaking process completed in " + elapsedTime / 1000 + " seconds.");
-        }
-
-    }
+		//if weighted == true, I'm trying a weight configuration of (process=0.75, materials 0.25; processAndMaterials=0.75, certifications=0.25)
+		boolean weighted = true;
 
 
-    private static void logging(boolean logging) {
-        Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http", "org.eclipse.rdf4j"));
+		BufferedWriter writer = testing ? new BufferedWriter(new FileWriter(jsonOut)) : new BufferedWriter(new OutputStreamWriter(System.out));
+		if (args.length == 1) {
+			System.out.println(args[0]);
+			SemanticMatching_MVP.performSemanticMatching(args[0], 10, writer, testing, true);
+			return;
+		} else {
+			System.err.println("No arguments provided!");
+//			String jsonIn = "./files/rfq.json";
+//			SemanticMatching_MVP.performSemanticMatching(jsonIn, numMatchingResults, writer, testing, weighted);
+		}
 
-        if (!logging) {
-            for (String log : loggers) {
-                Logger logger = (Logger) LoggerFactory.getLogger(log);
-                logger.setLevel(Level.ERROR);
-                logger.setAdditive(false);
-            }
-        } else {
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
 
-            System.out.println("Logging:");
+		if (testing) {
+			System.out.println("The entire Matchmaking process completed in " + elapsedTime / 1000 + " seconds.");
+		}
 
-        }
+	}
 
-    }
+
+	private static void logging(boolean logging) {
+		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http", "org.eclipse.rdf4j"));
+
+		if (!logging) {
+			for (String log : loggers) {
+				Logger logger = (Logger) LoggerFactory.getLogger(log);
+				logger.setLevel(Level.ERROR);
+				logger.setAdditive(false);
+			}
+		} else {
+
+			System.out.println("Logging:");
+
+		}
+
+	}
 
 }

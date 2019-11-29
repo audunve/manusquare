@@ -64,7 +64,8 @@ public class SemanticMatching_MVP {
     static final String REPOSITORY_ID = "Manusquare_200";
 
     //configuration of the MANUSQUARE Semantic Infrastructure
-    static String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
+    //OLD SPARQL ENDPOINT static String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
+    static String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry-test/repository/manusquare?infer=false&limit=0&offset=0";
     static String AUTHORISATION_TOKEN = "c5ec0a8b494a30ed41d4d6fe3107990b";
 
     //if the MANUSQUARE ontology is fetched from url
