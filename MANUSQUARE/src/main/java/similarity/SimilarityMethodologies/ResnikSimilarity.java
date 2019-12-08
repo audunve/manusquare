@@ -7,7 +7,7 @@ import utilities.MathUtils;
 
 public class ResnikSimilarity implements ISimilarity<ResnikSimilarityParameters> {
     @Override
-    public double ComputeSimilarity(ResnikSimilarityParameters params) {
+    public double ComputeSimilaritySimpleGraph(ResnikSimilarityParameters params) {
         Node LCS = Graph.findLCS(params.sourceNode, params.targetNode, params.label);
         int subConcepts = Graph.getNumChildNodes(LCS, params.label);
         int totalConcepts = params.ontology.getClassesInSignature().size();
