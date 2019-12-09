@@ -140,7 +140,11 @@
 			<artifactId>guava</artifactId>
 			<version>28.0-jre</version>
 		</dependency>
-
+		<dependency>
+			<groupId>io.github.classgraph</groupId>
+			<artifactId>classgraph</artifactId>
+			<version>4.8.34</version>
+		</dependency>
 
 		<!-- <dependency> <groupId>org.json</groupId> <artifactId>json</artifactId> 
 			<version>20190722</version> </dependency> -->

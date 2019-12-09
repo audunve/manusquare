@@ -8,6 +8,7 @@ import io.javalin.plugin.openapi.InitialConfigurationCreator;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.annotations.*;
+import io.javalin.plugin.openapi.dsl.OpenApiBuilder;
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory;
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper;
 import io.javalin.plugin.openapi.ui.ReDocOptions;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import javalin.controllers.ExmapleController;
+import javalin.controllers.SemanticMatchingController;
 
 public class OpenAPIEndpoint {
     public static void main(String[] args) {
@@ -35,6 +37,14 @@ public class OpenAPIEndpoint {
         Javalin.create(config -> {
             config.registerPlugin(new OpenApiPlugin(getOpenApiOptions()));
         }).start();
+
+        Javalin app = Javalin.create(config -> {
+            config.registerPlugin(new OpenApiPlugin(getOpenApiOptions()));
+        });
+
+        app.post("/matching", SemanticMatchingController.PerformSemanticMatching);
+        app.start(5445);
+
 
 
     }
