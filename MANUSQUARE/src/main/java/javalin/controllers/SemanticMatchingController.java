@@ -2,25 +2,32 @@ package javalin.controllers;
 
 import io.javalin.http.Handler;
 import io.javalin.plugin.openapi.annotations.*;
+import javalin.models.Rfq;
 import json.RequestForQuotation;
-import org.eclipse.jetty.server.Authentication;
 import ui.SemanticMatching_MVP;
 
 import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.util.Objects;
 
 public class SemanticMatchingController {
     @OpenApi(
+            description = "This endpoint performs the Semantic matching from a given RFQ.",
+            operationId = "PerformSemanticMatching",
+            summary = "This methodc performs the semantic matching based on the RFQ",
+            deprecated = false,
+            tags = {"Semantic matching"},
+
             //requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = RequestForQuotation.class)),
-            formParams = @OpenApiFormParam(name="rfq", type = RequestForQuotation.class),
+            pathParams = @OpenApiParam(name="rfq", type=Rfq.class),
             responses = {
-                    @OpenApiResponse(status = "200", content = @OpenApiContent(type = "application/json"))
+                    @OpenApiResponse(status = "200", content = @OpenApiContent(from = Rfq.class)),
+                    //@OpenApiResponse(status = "200", content = @OpenApiContent(type = "application/json"))
             }
+
     )
     public static Handler PerformSemanticMatching = ctx -> {
-        String jsonInput = Objects.requireNonNull(ctx.formParam("rfq"));
+        String jsonInput = Objects.requireNonNull(ctx.pathParam("rfq"));
         StringWriter sw = new StringWriter();
         BufferedWriter writer = new BufferedWriter(sw);
 
