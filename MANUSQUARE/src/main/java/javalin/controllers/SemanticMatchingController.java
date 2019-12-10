@@ -18,16 +18,18 @@ public class SemanticMatchingController {
             deprecated = false,
             tags = {"Semantic matching"},
 
-            //requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = RequestForQuotation.class)),
-            pathParams = @OpenApiParam(name="rfq", type=Rfq.class),
+            //requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = Rfq.class)),
+            //queryParams = @OpenApiParam(name="rfq", type=Rfq.class),
+            //requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = Rfq.class, type = "applicatiton/json")),
+            formParams = @OpenApiFormParam(name="rfq", type = Rfq.class),
             responses = {
                     @OpenApiResponse(status = "200", content = @OpenApiContent(from = Rfq.class)),
-                    //@OpenApiResponse(status = "200", content = @OpenApiContent(type = "application/json"))
+                    @OpenApiResponse(status = "200", content = @OpenApiContent(type = "application/json"))
             }
 
     )
     public static Handler PerformSemanticMatching = ctx -> {
-        String jsonInput = Objects.requireNonNull(ctx.pathParam("rfq"));
+        String jsonInput = Objects.requireNonNull(ctx.formParam("rfq"));
         StringWriter sw = new StringWriter();
         BufferedWriter writer = new BufferedWriter(sw);
 
