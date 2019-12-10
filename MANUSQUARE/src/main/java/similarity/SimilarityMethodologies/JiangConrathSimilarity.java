@@ -1,14 +1,14 @@
 package similarity.SimilarityMethodologies;
 
-import graph.Graph;
-import org.neo4j.graphdb.Node;
+//import graph.Graph;
+//import org.neo4j.graphdb.Node;
 import similarity.SimilarityMethodologies.SimilarityParameters.JiangConrathSimilarityParameters;
 import utilities.MathUtils;
 
 public class JiangConrathSimilarity implements ISimilarity<JiangConrathSimilarityParameters> {
     @Override
     public double ComputeSimilaritySimpleGraph(JiangConrathSimilarityParameters params) {
-        Node LCS = Graph.findLCS(params.sourceNode, params.targetNode, params.label);
+  /*      Node LCS = Graph.findLCS(params.sourceNode, params.targetNode, params.label);
         int totalConcepts = params.ontology.getClassesInSignature().size();
         int subConceptsSource = Graph.getNumChildNodes(params.sourceNode, params.label);
         int subConceptsTarget = Graph.getNumChildNodes(params.targetNode, params.label);
@@ -29,7 +29,8 @@ public class JiangConrathSimilarity implements ISimilarity<JiangConrathSimilarit
 
             return (double) 1 + (ICLCS - ((ICSource + ICTarget) / 2));
 
-        }
+        }*/
+  return -1;
 
     }
 }

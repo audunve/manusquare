@@ -2,7 +2,7 @@ package ui;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import org.codehaus.jettison.json.JSONException;
+//import org.codehaus.jettison.json.JSONException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ import java.util.Set;
 public class BasicMatchmaking_MVP {
 
 
-	public static void main(String[] args) throws OWLOntologyCreationException, IOException, ParseException, JSONException, OWLOntologyStorageException {
+	public static void main(String[] args) throws OWLOntologyCreationException, IOException, ParseException/*, JSONException*/, OWLOntologyStorageException {
 		long startTime = System.currentTimeMillis();
 		logging(false);
 		int numMatchingResults = 10;

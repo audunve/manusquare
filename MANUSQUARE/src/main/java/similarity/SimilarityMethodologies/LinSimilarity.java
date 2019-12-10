@@ -1,7 +1,7 @@
 package similarity.SimilarityMethodologies;
 
-import graph.Graph;
-import org.neo4j.graphdb.Node;
+//import graph.Graph;
+//import org.neo4j.graphdb.Node;
 import similarity.SimilarityMethodologies.SimilarityParameters.LinSimilarityParameters;
 import utilities.MathUtils;
 
@@ -9,7 +9,7 @@ public class  LinSimilarity implements ISimilarity<LinSimilarityParameters> {
 
     @Override
     public double ComputeSimilaritySimpleGraph(LinSimilarityParameters params) {
-
+/*
         // find the lowest common subsumer
         Node LCS = Graph.findLCS(params.sourceNode, params.targetNode, params.label);
 
@@ -23,6 +23,7 @@ public class  LinSimilarity implements ISimilarity<LinSimilarityParameters> {
         double ICTarget = MathUtils.computeInformationContent(subConceptsTarget, totalConcepts);
         double ICLCS = MathUtils.computeInformationContent(subConceptsLCS, totalConcepts);
 
-        return (2 * ICLCS) / (ICSource + ICTarget);
+        return (2 * ICLCS) / (ICSource + ICTarget);*/
+        return -1;
     }
 }
