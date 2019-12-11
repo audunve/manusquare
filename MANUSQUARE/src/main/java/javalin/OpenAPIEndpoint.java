@@ -43,7 +43,7 @@ public class OpenAPIEndpoint {
         //OpenApiDocumentation performMatchmakingDocumentation = OpenApiBuilder.document().body(Rfq.class).json("200", Rfq.class);
 
         app.post("/matching", SemanticMatchingController.PerformSemanticMatching);
-        app.start(3422);
+        app.start(7000);
 
 
 

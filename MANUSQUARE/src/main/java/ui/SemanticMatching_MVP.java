@@ -51,8 +51,11 @@ public class SemanticMatching_MVP {
 
     //configuration of the MANUSQUARE Semantic Infrastructure
     //OLD SPARQL ENDPOINT static String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
-    static String SPARQL_ENDPOINT = "http://116.203.187.118/semantic-registry-test/repository/manusquare?infer=false&limit=0&offset=0";
-    static String AUTHORISATION_TOKEN = "c5ec0a8b494a30ed41d4d6fe3107990b";
+    static String WorkshopSpaql = "http://manusquare.holonix.biz:8080/semantic-registry/repository/manusquare?infer=false&limit=0&offset=0";
+    static String SPARQL_ENDPOINT = WorkshopSpaql; //"http://116.203.187.118/semantic-registry-test/repository/manusquare?infer=false&limit=0&offset=0";
+    static String Workshop_token = "7777e8ed0d5eb1b63ab1815a56e31ff1";
+    static String AUTHORISATION_TOKEN = Workshop_token; //"c5ec0a8b494a30ed41d4d6fe3107990b";
+
 
     //if the MANUSQUARE ontology is fetched from url
     static final IRI MANUSQUARE_ONTOLOGY_IRI = IRI.create("http://116.203.187.118/semantic-registry/repository/manusquare/ontology.owl");
@@ -202,18 +205,32 @@ public class SemanticMatching_MVP {
                 while (result.hasNext()) {
                     BindingSet solution = result.next();
                     //omit the NamedIndividual types from the query result
-                    if (!solution.getValue("processType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
-                            && !solution.getValue("certificationType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
-                            && !solution.getValue("materialType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")) {
+                    if (solution.hasBinding("materialType")) {
+                        if (!solution.getValue("processType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
+                                && !solution.getValue("certificationType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
+                                && !solution.getValue("materialType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")) {
 
-                        record = new SparqlRecord();
-                        record.setSupplierId(solution.getValue("supplierId").stringValue().replaceAll("\\s+", ""));
-                        record.setProcess(stripIRI(solution.getValue("processType").stringValue().replaceAll("\\s+", "")));
-                        record.setMaterial(stripIRI(solution.getValue("materialType").stringValue().replaceAll("\\s+", "")));
-                        record.setCertification(stripIRI(solution.getValue("certificationType").stringValue().replaceAll("\\s+", "")));
+                            record = new SparqlRecord();
+                            record.setSupplierId(solution.getValue("supplier").stringValue().replaceAll("\\s+", ""));
+                            record.setProcess(stripIRI(solution.getValue("processType").stringValue().replaceAll("\\s+", "")));
+                            record.setMaterial(stripIRI(solution.getValue("materialType").stringValue().replaceAll("\\s+", "")));
+                            record.setCertification(stripIRI(solution.getValue("certificationType").stringValue().replaceAll("\\s+", "")));
 
-                        recordSet.add(record);
+                            recordSet.add(record);
+                        }
+                    } else {
+                        if (!solution.getValue("processType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")
+                                && !solution.getValue("certificationType").stringValue().equals("http://www.w3.org/2002/07/owl#NamedIndividual")) {
+
+                            record = new SparqlRecord();
+                            record.setSupplierId(solution.getValue("supplier").stringValue().replaceAll("\\s+", ""));
+                            record.setProcess(stripIRI(solution.getValue("processType").stringValue().replaceAll("\\s+", "")));
+                            record.setCertification(stripIRI(solution.getValue("certificationType").stringValue().replaceAll("\\s+", "")));
+
+                            recordSet.add(record);
+                        }
                     }
+
                 }
 
             } catch (Exception e) {
