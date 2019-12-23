@@ -48,6 +48,7 @@ public class SimilarityMeasures {
 
 		for (Process pc : query.getProcesses()) {
 			for (Process ps : processList) {		
+				
 
 				//represent processes as graph nodes
 				consumerQueryProcessNode = pc.getName();
@@ -71,7 +72,13 @@ public class SimilarityMeasures {
 					for (Material material : materials) {
 						supplierMaterials.add(material.getName());
 					}
-
+										
+					
+					//if materialSim is computed using semantic similarity
+					//materialSim = computeSemanticSim(consumerMaterials, supplierMaterials, similarityMethod, similarityMethodology, onto, graph);
+					
+					
+					//if materialSim is computed using set similarity
 					//if the set of materials in the supplier process contains all materials requested by the consumer --> 1.0
 					if (supplierMaterials.containsAll(consumerMaterials)) {
 						materialSim = 1.0;
@@ -86,6 +93,7 @@ public class SimilarityMeasures {
 						processAndMaterialSim = (processSim + materialSim) / 2;
 					}
 				}
+				
 				
 				//certificate facet similarity
 				Set<String> requiredCertificates= new HashSet<String>();
@@ -112,6 +120,9 @@ public class SimilarityMeasures {
 						certificateSim = Jaccard.jaccardSetSim(requiredCertificates, possessedCertificates);
 					} 
 					
+					if (supplier.getId().equals("urn:stakeholders:678")) {//delete
+					System.out.println("certificateSim is " + certificateSim);
+					}
 
 					if (weighted) {
 						allCombinedSim = (processAndMaterialSim * 0.75)  + (certificateSim * 0.25);
@@ -119,15 +130,45 @@ public class SimilarityMeasures {
 						allCombinedSim = (processAndMaterialSim + certificateSim) / 2;
 					}
 					
+					if (supplier.getId().equals("urn:stakeholders:678")) {//delete
+					System.out.println("allCombinedSim is " + allCombinedSim);
+					}
+					
 				}
 
 				similarityList.add(allCombinedSim);
-			}			
+			}	
+
 		}	
-		
 
 		return similarityList;
 
+	}
+	
+	private static double computeSemanticSim (Set<String> s1, Set<String> s2, SimilarityMethods similarityMethod, ISimilarity similarityMethodology, OWLOntology onto, MutableGraph<String> graph) {
+		SimilarityParameters parameters = null;
+		double semanticSim = 0;
+		double localMaterialSim = 0;
+		int totalPermutations = s1.size() * s2.size();
+
+		for (String cm : s1) {			
+			for (String sm : s2 ) {
+				parameters = SimilarityParametersFactory.CreateSimpleGraphParameters(similarityMethod, cm, sm, onto, graph);
+				System.out.println("localMaterialSim between: " + cm + " and " + sm);
+				localMaterialSim += similarityMethodology.ComputeSimilaritySimpleGraph(parameters);
+			
+			}
+		}
+		
+		System.out.println("totalPermutations is: " + totalPermutations);
+		
+		System.out.println("Local material similarity: " + localMaterialSim);
+		
+		semanticSim = localMaterialSim / totalPermutations;
+		System.out.println("semanticSim is " + semanticSim);
+		
+		return semanticSim;
+		
 	}
 
 }

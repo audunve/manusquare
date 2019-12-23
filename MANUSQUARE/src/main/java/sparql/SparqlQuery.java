@@ -43,6 +43,7 @@ public class SparqlQuery {
 		return strQuery;
 	}
 	
+	
 	/**
 	 * This is the "original" query that follows the specification of the Semantic Infrastructure in D2.4
 	 * @param processes set of processes included by consumer in RFQ

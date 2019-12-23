@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -89,7 +90,7 @@ public class TestDataGeneratorSimpleCase {
 
 		TestDataGenerator data;
 
-		BufferedReader br = new BufferedReader(new FileReader("./files/TESTDATA/DummyData_10.csv"));
+		BufferedReader br = new BufferedReader(new FileReader("./files/TESTDATA/DummyData_5000.csv"));
 
 		String line = br.readLine();
 
@@ -158,22 +159,28 @@ public class TestDataGeneratorSimpleCase {
 		AddAxiom addAxiomChange = null;
 
 		int iterator = 0;
+		
+		List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange>();
 
 		//adding process chain
 		for (TestDataGenerator td : dataset) {
 			iterator+=1;	
+			
+			
 
 			//adding process chain individual
 			processChainInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getProcessChainId()));
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(processChainClass, processChainInd);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);		
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 			//adding supplier individual
 			supplierInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getSupplierId().replaceAll(",", "_").replaceAll(" ", "_")));
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(supplierClass, supplierInd);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 			//adding process
 			List<String> processes = retrieveProcesses(processScope, onto);
@@ -183,7 +190,8 @@ public class TestDataGeneratorSimpleCase {
 
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(processTypeClass, process1Ind);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);	
+			//manager.applyChange(addAxiomChange);	
+			changes.add(addAxiomChange);
 
 			//add input material 1
 			List<String> materials = retrieveMaterials(materialScope, onto);
@@ -192,14 +200,16 @@ public class TestDataGeneratorSimpleCase {
 			materialTypeClass = getClass(material, onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(materialTypeClass, material_input_1_Ind);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//add input material 1 attribute
 			material_input_1_Ind_attribute = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_MATERIAL_ATTRIBUTE" + material + "_" + iterator));
 			attributeTypeClass = getClass("AttributeType", onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(attributeTypeClass, material_input_1_Ind_attribute);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 			//add input material 2
 			materials = retrieveMaterials(materialScope, onto);
@@ -208,15 +218,16 @@ public class TestDataGeneratorSimpleCase {
 			materialTypeClass = getClass(material, onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(materialTypeClass, material_input_2_Ind);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 			//add input material 2 attribute
 			material_input_2_Ind_attribute = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_MATERIAL_ATTRIBUTE" + material + "_" + iterator));
 			attributeTypeClass = getClass("AttributeType", onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(attributeTypeClass, material_input_2_Ind_attribute);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
-			
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 			//process 2
 			List<String> processes2 = retrieveProcesses(processScope, onto);
@@ -226,7 +237,8 @@ public class TestDataGeneratorSimpleCase {
 
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(processType2Class, process2Ind);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 			//input material process 2
 			materials = retrieveMaterials(materialScope, onto);
@@ -235,14 +247,17 @@ public class TestDataGeneratorSimpleCase {
 			materialTypeClass = getClass(material, onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(materialTypeClass, material_input_3_Ind);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//add input material 3 attribute
 			material_input_3_Ind_attribute = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_MATERIAL_ATTRIBUTE" + material + "_" + iterator));
 			attributeTypeClass = getClass("AttributeType", onto);
 			classAssertionAxiom = df.getOWLClassAssertionAxiom(attributeTypeClass, material_input_3_Ind_attribute);			
 			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);		
+			changes.add(addAxiomChange);
+			
 
 
 			//add certifications to supplier
@@ -276,43 +291,33 @@ public class TestDataGeneratorSimpleCase {
 				certificationInds.add(certificationInd);
 				classAssertionAxiom = df.getOWLClassAssertionAxiom(c, certificationInd);	
 				addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-				manager.applyChange(addAxiomChange);
+				//manager.applyChange(addAxiomChange);
+				changes.add(addAxiomChange);
 			}
 
 			//OP hasSupplier from processChainInd to supplierInd
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasSupplier", onto), processChainInd, supplierInd);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 			//OP hasProcess from processChainInd to process1Ind
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasProcess", onto), processChainInd, process1Ind);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
-			
-//			//OP hasInput from process1Ind to material_input_1_Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasInput", onto), process1Ind, material_input_1_Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-
-			//OP hasInput from process1Ind to material_input_2_Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasInput", onto), process1Ind, material_input_2_Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-
-//			//OP hasInput from process2Ind to material_input_3_Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasInput", onto), process2Ind, material_input_3_Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//OP hasAttribute from process1Ind to material_input_1_Ind_attribute
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasAttribute", onto), process1Ind, material_input_1_Ind_attribute);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//OP hasAttribute from material_input_1_Ind_attribute to material_input_1_Ind
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasValue", onto), material_input_1_Ind_attribute, material_input_1_Ind);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//OP hasAttribute from process1Ind to material_input_2_Ind_attribute
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasAttribute", onto), process1Ind, material_input_2_Ind_attribute);
@@ -322,478 +327,74 @@ public class TestDataGeneratorSimpleCase {
 			//OP hasAttribute from material_input_2_Ind_attribute to material_input_2_Ind
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasValue", onto), material_input_2_Ind_attribute, material_input_2_Ind);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//OP hasAttribute from process1Ind to material_input_2_Ind_attribute
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasAttribute", onto), process2Ind, material_input_3_Ind_attribute);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//OP hasAttribute from material_input_2_Ind_attribute to material_input_2_Ind
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasValue", onto), material_input_3_Ind_attribute, material_input_3_Ind);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//OP hasProcess from processChainInd to process2Ind
 			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasProcess", onto), processChainInd, process2Ind);
 			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 
 
 			//OP hasCertification from supplierId to certificationInd
 			for (OWLIndividual ind : certificationInds) {
 				OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasCertification", onto), supplierInd, ind);
 				addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-				manager.applyChange(addAxiomChange);
+				//manager.applyChange(addAxiomChange);
+				changes.add(addAxiomChange);
 			}
 
 			//DP for expressing process chain name and id
 			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasName", onto), processChainInd, df.getOWLLiteral(td.getProcessChainName().replaceAll(",", "_")));
 			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasId", onto), processChainInd, df.getOWLLiteral(td.getProcessChainId().replaceAll(",", "_")));
 			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			//DPs for expressing supplier name and id
 			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasName", onto), supplierInd, df.getOWLLiteral(td.getSupplierName().replaceAll(",", "_")));
 			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
 			
 			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasId", onto), supplierInd, df.getOWLLiteral(td.getSupplierId().replaceAll(",", "_")));
 			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-			manager.applyChange(addAxiomChange);
+			changes.add(addAxiomChange);
+			
 
 			
-//			//OP hasUnitOfMeasure from material_output_1_Ind
-//			List<String> attributeTypes = new LinkedList<String>();
-//			attributeTypes.add("Tolerance");
-//			attributeTypes.add("Precision");
-//			attributeTypes.add("ProductionSpeed");
-//
-//			
-//			//DPs for expressing attribute type, hasValue and Unit of measure for capabilities (capability_1_ind)
-//			List<Integer> values = new LinkedList<Integer>();
-//			values.add(1);
-//			values.add(2);
-//			values.add(3);
-//			
-//			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasValue", onto), attributeInd, df.getOWLLiteral(StringUtilities.getRandomInt1(values)));
-//			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
+			//manager.applyChange(addAxiomChange);
 			
 			
+
 
 		}
+		
+		System.out.println("Applying " + changes.size() + " changes");
+		
+		manager.applyChanges(changes);
+		
 		//save the ontology in each iteration
+		System.out.println("Saving ontology");
 		manager.saveOntology(onto);
 	}
-
-
-//	public static void main(String[] args) throws IOException, OWLOntologyCreationException, OWLOntologyStorageException {
-//
-//		TestDataGenerator data;
-//
-//		BufferedReader br = new BufferedReader(new FileReader("./files/TESTDATA/DummyData_10.csv"));
-//
-//		String line = br.readLine();
-//
-//		String[] params = null;
-//
-//		Set<TestDataGenerator> dataset = new HashSet<TestDataGenerator>();
-//
-//		while (line != null) {
-//			params = line.split(";");
-//
-//			data = new TestDataGenerator();
-//			data.setProcessChainId(params[0]);
-//			data.setProcessChainName(params[1]);
-//			data.setSupplierId(params[2]);
-//			data.setSupplierName(params[3]);
-//
-//			dataset.add(data);
-//			line = br.readLine();
-//
-//		}
-//
-//		br.close();
-//
-//
-//		//import manusquare ontology
-//		File ontoFile = new File("./files/ONTOLOGIES/manusquare-industrial.owl");
-//
-//
-//		String machineScope = "MachineType";
-//		String processScope = "SubtractionProcess";
-//		String materialScope = "Ferrous";
-////		String productsScope = "MetalProducts";
-////		String humanCapabilitiyScope = "EngineeringService";
-//
-//		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-//		//point to a local folder containing local copies of ontologies to sort out the imports
-//		AutoIRIMapper mapper=new AutoIRIMapper(new File("./files/ONTOLOGIES"), true);
-//		manager.addIRIMapper(mapper);
-//
-//		OWLOntology onto = manager.loadOntologyFromOntologyDocument(ontoFile);
-//		System.out.println("The ontology contains " + onto.getClassesInSignature().size() + " classes");
-//
-//		//		OWLDataFactory df = manager.getOWLDataFactory();
-//		OWLClass processChainClass = getClass("ProcessChain", onto);
-//		OWLClass supplierClass = getClass("Supplier", onto);
-//		OWLClass unitOfMeasureClass = getClass("UnitOfMeasure", onto);
-//		OWLClass attributeClass = getClass("Attribute", onto);
-//
-//		OWLDataFactory df = manager.getOWLDataFactory();
-//		OWLClass materialTypeClass = null;
-//		OWLClass processTypeClass = null;
-//		OWLClass processType2Class = null;
-//		OWLClass machineTypeClass = null;
-////		OWLClass productTypeClass = null;
-////		OWLClass humanTypeClass = null;
-////		OWLClass humanCapabilityTypeClass = null;
-//
-//		OWLIndividual processChainInd = null;
-//		OWLIndividual supplierInd = null;
-//		OWLIndividual process1Ind = null;
-//		OWLIndividual process2Ind = null;
-//		OWLIndividual material_input_1_Ind = null;
-//		OWLIndividual material_input_2_Ind = null;
-//		OWLIndividual material_input_3_Ind = null;
-////		OWLIndividual material_output_1_Ind = null;
-////		OWLIndividual resource_1_Ind = null;
-////		OWLIndividual capability_1_Ind = null;
-////		OWLIndividual resource_2_Ind = null;
-////		OWLIndividual capability_2_Ind = null;
-//		OWLIndividual certificationInd = null;	
-////		OWLIndividual unitOfMeasureInd = null;
-//		OWLIndividual attributeInd = null;
-//		
-//		OWLAxiom classAssertionAxiom = null; 
-//		OWLAxiom OPAssertionAxiom = null; 
-//		OWLAxiom DPAssertionAxiom = null; 
-//
-//		AddAxiom addAxiomChange = null;
-//
-//		int iterator = 0;
-//
-//		//adding process chain
-//		for (TestDataGenerator td : dataset) {
-//			iterator+=1;	
-//
-//			//adding process chain individual
-//			processChainInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getProcessChainId()));
-//			classAssertionAxiom = df.getOWLClassAssertionAxiom(processChainClass, processChainInd);			
-//			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);		
-//			manager.applyChange(addAxiomChange);
-//
-//			//adding supplier individual
-//			supplierInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + td.getSupplierId().replaceAll(",", "_").replaceAll(" ", "_")));
-//			classAssertionAxiom = df.getOWLClassAssertionAxiom(supplierClass, supplierInd);			
-//			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//			//adding process
-//			List<String> processes = retrieveProcesses(processScope, onto);
-//			String process = StringUtilities.getRandomString1(processes);
-//			process1Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_PROCESS_" + process + "_" + iterator));
-//			processTypeClass = getClass(process, onto);
-//
-//			//System.out.println("processInd: " + process1Ind.toString());
-//			//System.out.println("processTypeClass: " + processTypeClass);
-//
-//			classAssertionAxiom = df.getOWLClassAssertionAxiom(processTypeClass, process1Ind);			
-//			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//			//add input material 1
-//			List<String> materials = retrieveMaterials(materialScope, onto);
-//			String material = StringUtilities.getRandomString1(materials);
-//			material_input_1_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_MATERIAL_" + material + "_" + iterator));
-//			materialTypeClass = getClass(material, onto);
-//			classAssertionAxiom = df.getOWLClassAssertionAxiom(materialTypeClass, material_input_1_Ind);			
-//			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//			//add input material 2
-//			materials = retrieveMaterials(materialScope, onto);
-//			material = StringUtilities.getRandomString1(materials);
-//			material_input_2_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_MATERIAL_" + material + "_" + iterator));
-//			materialTypeClass = getClass(material, onto);
-//			classAssertionAxiom = df.getOWLClassAssertionAxiom(materialTypeClass, material_input_2_Ind);			
-//			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-////
-////			//add output
-////			List<String> products = retrieveProducts(productsScope, onto);
-////			String product = StringUtilities.getRandomString1(products);
-////			material_output_1_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_PRODUCT_" + product + "_" + iterator));
-////			productTypeClass = getClass(product, onto);
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(productTypeClass, material_output_1_Ind);			
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-//
-////			//add resources
-////			List<String> machines = retrieveMachines(machineScope, onto);
-////			String machine = StringUtilities.getRandomString1(machines);
-////			resource_1_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_RESOURCE_" + machine + "_" + iterator));
-////			machineTypeClass =  getClass(machine, onto);
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(machineTypeClass, resource_1_Ind);			
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-////			//add capabilities - use the same as for process
-////			capability_1_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_CAPABILITY_" + process + "_" + iterator));
-////
-////			resource_2_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_HUMAN_" + td.getSupplierId() + "_" + iterator));
-////			humanTypeClass =  getClass("Human", onto);
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(humanTypeClass, resource_2_Ind);			
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-//			
-////			List<String> humanCapabilities = retrieveHumanCapabilities(humanCapabilitiyScope, onto);
-////			String humanCapability = StringUtilities.getRandomString1(humanCapabilities);
-////			capability_2_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_CAPABILITY_" + humanCapability + "_" + iterator));
-////			humanCapabilityTypeClass =  getClass(machine, onto);
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(humanCapabilityTypeClass, capability_2_Ind);			
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-//
-//			//process 2
-//			List<String> processes2 = retrieveProcesses(processScope, onto);
-//			String process2 = StringUtilities.getRandomString1(processes2);
-//			process2Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_PROCESS_" + process2 + "_" + iterator));
-//			processType2Class = getClass(process2, onto);
-//
-//			//System.out.println("processInd: " + process2Ind.toString());
-//			//System.out.println("processTypeClass: " + processType2Class);
-//
-//			classAssertionAxiom = df.getOWLClassAssertionAxiom(processType2Class, process2Ind);			
-//			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//			//input material process 2
-//			materials = retrieveMaterials(materialScope, onto);
-//			material = StringUtilities.getRandomString1(materials);
-//			material_input_3_Ind = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#IND_MATERIAL_" + material + "_" + iterator));
-//			materialTypeClass = getClass(material, onto);
-//			classAssertionAxiom = df.getOWLClassAssertionAxiom(materialTypeClass, material_input_3_Ind);			
-//			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//
-//			//add certifications to supplier
-//			List<String> certifications = new ArrayList<String>();
-//			certifications.add("LEED");
-//			certifications.add("AS9000");
-//			certifications.add("AS9100");
-//			certifications.add("ISO14000");
-//			certifications.add("ISO9000");
-//			certifications.add("ISO9001");
-//			certifications.add("ISO9002");
-//			certifications.add("ISO9003");
-//			certifications.add("ISO9004");
-//			certifications.add("MIL");
-//			certifications.add("QS9000");
-//
-//			Set<String> certificationsSet = StringUtilities.getRandomString3(certifications);
-//
-//			Set<OWLClass> certificationClasses = new HashSet<OWLClass>();
-//			Set<OWLIndividual> certificationInds = new HashSet<OWLIndividual>();
-//
-//			for (String s : certificationsSet) {
-//				certificationClasses.add(getClass(s, onto));
-//			}
-//
-//			//add certifications
-//			for (OWLClass c : certificationClasses) {
-//
-//				certificationInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + c.getIRI().getFragment() + "_" + td.getSupplierId().replaceAll(",", "_").replaceAll(" ", "_")));
-//				//add individual certifications to the set of certification individuals for this supplier
-//				certificationInds.add(certificationInd);
-//				classAssertionAxiom = df.getOWLClassAssertionAxiom(c, certificationInd);	
-//				addAxiomChange = new AddAxiom(onto, classAssertionAxiom);
-//				manager.applyChange(addAxiomChange);
-//			}
-//
-//			//OP hasSupplier from processChainInd to supplierInd
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasSupplier", onto), processChainInd, supplierInd);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//			//OP hasProcess from processChainInd to process1Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasProcess", onto), processChainInd, process1Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-////			//OP hasResource from process1Ind to resource_1_Ind
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasResource", onto), process1Ind, resource_1_Ind);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-////			//OP hasCapability from resource_1_Ind to capability_1_Ind
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasCapability", onto), resource_1_Ind, capability_1_Ind);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-////			//OP hasResource from process1Ind to resource_2_Ind
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasResource", onto), process1Ind, resource_2_Ind);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-////			//OP hasCapability from resource_2_Ind to capability_2_Ind
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasCapability", onto), resource_2_Ind, capability_2_Ind);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-//			//OP hasInput from process1Ind to material_input_1_Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasInput", onto), process1Ind, material_input_1_Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//			//OP hasInput from process1Ind to material_input_2_Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasInput", onto), process1Ind, material_input_2_Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-////			//OP hasOutput from process1Ind to material_output_1_Ind
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasOutput", onto), process1Ind, material_output_1_Ind);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-//			//OP hasInput from process2Ind to material_input_3_Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasInput", onto), process2Ind, material_input_3_Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//			
-//			//OP hasProcess from processChainInd to process2Ind
-//			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasProcess", onto), processChainInd, process2Ind);
-//			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//
-//			//OP hasCertification from supplierId to certificationInd
-//			for (OWLIndividual ind : certificationInds) {
-//				OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasCertification", onto), supplierInd, ind);
-//				addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-//				manager.applyChange(addAxiomChange);
-//			}
-//
-//			//DP for expressing process chain name and id
-//			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasName", onto), processChainInd, df.getOWLLiteral(td.getProcessChainName().replaceAll(",", "_")));
-//			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//			
-//			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasId", onto), processChainInd, df.getOWLLiteral(td.getProcessChainId().replaceAll(",", "_")));
-//			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//			
-//			//DPs for expressing supplier name and id
-//			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasName", onto), supplierInd, df.getOWLLiteral(td.getSupplierName().replaceAll(",", "_")));
-//			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//			
-//			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasId", onto), supplierInd, df.getOWLLiteral(td.getSupplierId().replaceAll(",", "_")));
-//			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//
-//			//DPs for expressing quantity, unit of measure for material_output_1_Ind
-//			List<Integer> capacity = new ArrayList<Integer>();
-//			capacity.add(50);
-//			capacity.add(75);
-//			capacity.add(100);
-//			capacity.add(125);
-//			capacity.add(150);
-//			capacity.add(1000);
-//			
-////			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasQuantity", onto), material_output_1_Ind, df.getOWLLiteral(StringUtilities.getRandomInt1(capacity)));
-////			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//			
-//			//OP hasUnitOfMeasure from material_output_1_Ind
-//			List<String> attributeTypes = new LinkedList<String>();
-//			attributeTypes.add("Tolerance");
-//			attributeTypes.add("Precision");
-//			attributeTypes.add("ProductionSpeed");
-//			
-////			attributeInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + StringUtilities.getRandomString1(attributeTypes) + "_" + material_output_1_Ind.asOWLNamedIndividual().getIRI().getFragment() + "_" + iterator));
-////			//System.out.println("attributeInd (anonymous from material_output_1_Ind): " + attributeInd.toString());
-////			attributeClass = getClass(StringUtilities.getRandomString1(attributeTypes), onto);
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(attributeClass, attributeInd);	
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);		
-////			manager.applyChange(addAxiomChange);
-//			
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasAttribute", onto), material_output_1_Ind, attributeInd);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//
-////			unitOfMeasureInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + "unitOfMeasure_" + material_output_1_Ind.asOWLNamedIndividual().getIRI().getFragment() + "_" + iterator));
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(unitOfMeasureClass, unitOfMeasureInd);			
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);		
-////			manager.applyChange(addAxiomChange);
-//								
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasUnitOfMeasure", onto), attributeInd, unitOfMeasureInd);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//			
-//
-//			//DPs for expressing attribute type, hasValue and Unit of measure for resource 1 (material_output_1_Ind)		
-//			List<Integer> pieces = new ArrayList<Integer>();
-//			pieces.add(50);
-//			pieces.add(75);
-//			pieces.add(100);
-//			pieces.add(125);
-//			pieces.add(150);
-//			pieces.add(1000);
-//			
-////			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasName", onto), unitOfMeasureInd, df.getOWLLiteral("pieces"));
-////			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//			
-//			//DPs for expressing attribute type, hasValue and Unit of measure for capabilities (capability_1_ind)
-//			List<Integer> values = new LinkedList<Integer>();
-//			values.add(1);
-//			values.add(2);
-//			values.add(3);
-//			
-////			attributeInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + StringUtilities.getRandomString1(attributeTypes) + "_" + capability_1_Ind.asOWLNamedIndividual().getIRI().getFragment() + "_" + iterator));
-////			attributeClass = getClass(attributeInd.toString().substring(attributeInd.toString().indexOf("#")+1, attributeInd.toString().indexOf("_")), onto);
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(attributeClass, attributeInd);			
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);		
-////			manager.applyChange(addAxiomChange);
-//
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasAttribute", onto), capability_1_Ind, attributeInd);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//			
-//			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasValue", onto), attributeInd, df.getOWLLiteral(StringUtilities.getRandomInt1(values)));
-//			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-//			manager.applyChange(addAxiomChange);
-//			
-////			unitOfMeasureInd = df.getOWLNamedIndividual(IRI.create(onto.getOntologyID().getOntologyIRI() + "#" + "unitOfMeasure_" + capability_1_Ind.asOWLNamedIndividual().getIRI().getFragment() + "_" + iterator));
-////			classAssertionAxiom = df.getOWLClassAssertionAxiom(unitOfMeasureClass, unitOfMeasureInd);			
-////			addAxiomChange = new AddAxiom(onto, classAssertionAxiom);		
-////			manager.applyChange(addAxiomChange);
-//			
-////			DPAssertionAxiom = df.getOWLDataPropertyAssertionAxiom(OntologyOperations.getDataProperty("hasName", onto), unitOfMeasureInd, df.getOWLLiteral("mm/min"));
-////			addAxiomChange = new AddAxiom(onto, DPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//								
-////			OPAssertionAxiom = df.getOWLObjectPropertyAssertionAxiom(OntologyOperations.getObjectProperty("hasUnitOfMeasure", onto), attributeInd, unitOfMeasureInd);
-////			addAxiomChange = new AddAxiom(onto, OPAssertionAxiom);
-////			manager.applyChange(addAxiomChange);
-//			
-//
-//		}
-//		//save the ontology in each iteration
-//		manager.saveOntology(onto);
-//	}
-
-
-	
 
 
 	public String getSupplierName() {
